@@ -3,123 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mô Phỏng Trạng Thái Vật Chất - Khí Lý Tưởng</title>
+    <title>PhET Simulation - Trạng Thái Vật Chất & Khí Lý Tưởng</title>
     <style>
-        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; user-select: none; }
         body {
-            background-color: #1a1a2e;
-            color: #fff;
+            background-color: #121212;
+            color: #ffffff;
             margin: 0;
-            padding: 20px;
+            padding: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-        h1 { margin-bottom: 20px; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
-        .main-container {
+        h1 { margin: 0 0 15px 0; font-size: 1.6em; color: #4dabf7; text-shadow: 0 0 8px rgba(77,171,247,0.3); }
+        .sim-container {
             display: flex;
-            gap: 20px;
-            background: #16213e;
-            padding: 20px;
+            gap: 15px;
+            background: #1e1e1e;
+            padding: 15px;
             border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            border: 2px solid #333;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
         }
-        .canvas-container { position: relative; }
         canvas {
-            background: #0f3460;
-            border: 3px solid #e94560;
+            background: #000000;
             border-radius: 8px;
+            cursor: pointer;
         }
-        .controls-panel {
-            width: 320px;
+        .panel {
+            width: 280px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 12px;
         }
-        .section {
-            background: #0f3460;
-            padding: 15px;
+        .box {
+            background: #2a2a2a;
+            padding: 12px;
             border-radius: 8px;
+            border: 1px solid #444;
         }
-        .section-title {
+        .box-title {
             font-weight: bold;
-            margin-bottom: 10px;
-            color: #e94560;
-            border-bottom: 1px solid #e94560;
-            padding-bottom: 5px;
+            font-size: 0.9em;
+            color: #ffd43b;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 4px;
+            text-transform: uppercase;
         }
-        .btn-group {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
         }
         button {
-            flex: 1;
-            padding: 8px 12px;
+            padding: 8px;
             border: none;
             border-radius: 4px;
-            background: #1a1a2e;
-            color: white;
+            background: #3b3b3b;
+            color: #fff;
+            font-size: 0.85em;
             cursor: pointer;
-            transition: 0.2s;
+            transition: all 0.2s;
         }
-        button:hover { background: #e94560; }
-        button.active {
-            background: #e94560;
-            font-weight: bold;
-        }
-        /* Cần gạt Nhiệt độ */
-        .heater-container {
+        button:hover { background: #4dabf7; color: #000; }
+        button.active { background: #ff6b6b; color: #fff; font-weight: bold; }
+        
+        /* Cần gạt nhiệt độ phong cách PhET */
+        .heater-control {
             display: flex;
             align-items: center;
-            gap: 15px;
+            justify-content: space-between;
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 6px;
         }
-        .slider-wrapper {
+        .slider-axis {
             display: flex;
             flex-direction: column;
             align-items: center;
-            height: 140px;
+            height: 110px;
         }
-        input[type="range"].vertical {
-            writing-mode: bt-lr; /* IE/Edge */
-            -webkit-appearance: slider-vertical; /* Webkit */
-            width: 12px;
-            height: 120px;
-            padding: 0 5px;
+        input[type="range"].v-slider {
+            writing-mode: bt-lr;
+            -webkit-appearance: slider-vertical;
+            width: 16px;
+            height: 90px;
+            cursor: pointer;
         }
-        .temp-labels {
+        .labels {
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            height: 120px;
+            height: 90px;
+            font-size: 0.8em;
             font-weight: bold;
-            font-size: 0.9em;
         }
-        .label-hot { color: #ff4757; }
-        .label-cool { color: #1e90ff; }
-        .readout {
+        .gauge-val {
             font-family: monospace;
-            font-size: 1.1em;
-            background: #1a1a2e;
-            padding: 10px;
+            font-size: 1.2em;
+            color: #51cf66;
+            text-align: center;
+            background: #111;
+            padding: 6px;
             border-radius: 4px;
+            border: 1px solid #333;
         }
     </style>
 </head>
 <body>
 
-<h1>Mô Phỏng Trạng Thái Vật Chất & Khí Lý Tưởng</h1>
+<h1>Mô Phỏng Trạng Thái Vật Chất (PhET Style)</h1>
 
-<div class="main-container">
-    <div class="canvas-container">
-        <canvas id="simCanvas" width="450" height="450"></canvas>
-    </div>
+<div class="sim-container">
+    <canvas id="phetCanvas" width="480" height="480"></canvas>
 
-    <div class="controls-panel">
-        <!-- Chọn Chất -->
-        <div class="section">
-            <div class="section-title">1. Chọn Phân Tử / Nguyên Tử</div>
-            <div class="btn-group">
+    <div class="panel">
+        <!-- 1. Chọn Nguyên Tử / Phân Tử -->
+        <div class="box">
+            <div class="box-title">Phân Tử / Nguyên Tử</div>
+            <div class="btn-grid">
                 <button class="active" onclick="selectSubstance('neon')">Neon</button>
                 <button onclick="selectSubstance('argon')">Argon</button>
                 <button onclick="selectSubstance('oxygen')">Oxy (O₂)</button>
@@ -127,80 +130,90 @@
             </div>
         </div>
 
-        <!-- Chọn Trạng Thái -->
-        <div class="section">
-            <div class="section-title">2. Chọn Trạng Thái</div>
-            <div class="btn-group">
+        <!-- 2. Chọn Trạng Thái -->
+        <div class="box">
+            <div class="box-title">Trạng Thái Khoản</div>
+            <div class="btn-grid" style="grid-template-columns: 1fr 1fr 1fr;">
                 <button id="btn-solid" onclick="setState('solid')">Rắn</button>
                 <button id="btn-liquid" onclick="setState('liquid')">Lỏng</button>
                 <button id="btn-gas" class="active" onclick="setState('gas')">Khí</button>
             </div>
         </div>
 
-        <!-- Cần Gạt Nhiệt Độ (Nóng / Lạnh) -->
-        <div class="section">
-            <div class="section-title">3. Điều Chỉnh Nhiệt Độ</div>
-            <div class="heater-container">
-                <div class="slider-wrapper">
-                    <input type="range" id="tempLever" class="vertical" min="-1" max="1" step="0.05" value="0" oninput="adjustTemp(this.value)" onmouseup="resetLever()" ontouchend="resetLever()">
+        <!-- 3. Điều Chỉnh Nhiệt Độ -->
+        <div class="box">
+            <div class="box-title">Nhiệt Độ (Lửa / Băng)</div>
+            <div class="heater-control">
+                <div class="labels">
+                    <span style="color: #ff6b6b;">🔥 NÓNG</span>
+                    <span style="color: #888;">⚪ GIỮ</span>
+                    <span style="color: #4dabf7;">❄️ LẠNH</span>
                 </div>
-                <div class="temp-labels">
-                    <span class="label-hot">🔥 LÀM NÓNG</span>
-                    <span>➖ GIỮ NGUYÊN</span>
-                    <span class="label-cool">❄️ LÀM LẠNH</span>
+                <div class="slider-axis">
+                    <input type="range" id="tempLever" class="v-slider" min="-1" max="1" step="0.05" value="0" oninput="adjustTemp(this.value)" onmouseup="resetLever()" ontouchend="resetLever()">
                 </div>
+                <div style="font-size: 1.5em;" id="heatIcon">🛑</div>
             </div>
         </div>
 
-        <!-- Thông số hiển thị -->
-        <div class="readout">
-            <div>Nhiệt độ (T): <span id="tempDisplay">300</span> K</div>
-            <div>Trạng thái: <span id="stateDisplay">Khí</span></div>
+        <!-- 4. Hiển Thị Áp Suất & Nhiệt Độ -->
+        <div class="box">
+            <div class="box-title">Đồng Hồ Đo PhET</div>
+            <div style="margin-bottom: 6px; font-size: 0.85em;">Nhiệt độ (T): <span id="tempReadout" style="color: #ffd43b;">300</span> K</div>
+            <div>Áp suất (P):</div>
+            <div class="gauge-val"><span id="pressureReadout">0.00</span> atm</div>
         </div>
     </div>
 </div>
 
 <script>
-const canvas = document.getElementById('simCanvas');
+const canvas = document.getElementById('phetCanvas');
 const ctx = canvas.getContext('2d');
 
-// Cấu hình chất
 const substances = {
-    neon:   { name: 'Neon', color1: '#ff4757', color2: null, solidT: 14, liquidT: 26, gasT: 300, radius: 8 },
-    argon:  { name: 'Argon', color1: '#2ed573', color2: null, solidT: 40, liquidT: 86, gasT: 300, radius: 10 },
-    oxygen: { name: 'Oxy', color1: '#1e90ff', color2: '#1e90ff', isDiatomic: true, solidT: 30, liquidT: 75, gasT: 300, radius: 7 },
-    water:  { name: 'Nước', color1: '#ff6b81', color2: '#ffffff', isWater: true, solidT: 150, liquidT: 298, gasT: 400, radius: 6 }
+    neon:   { name: 'Neon', color1: '#ff4757', solidT: 14, liquidT: 26, gasT: 300, r: 7 },
+    argon:  { name: 'Argon', color1: '#2ed573', solidT: 40, liquidT: 86, gasT: 300, r: 9 },
+    oxygen: { name: 'Oxy', color1: '#1e90ff', isDiatomic: true, solidT: 30, liquidT: 75, gasT: 300, r: 6 },
+    water:  { name: 'Nước', color1: '#ff4757', color2: '#ffffff', isWater: true, solidT: 150, liquidT: 298, gasT: 400, r: 6 }
 };
 
 let currentSubstance = 'neon';
-let currentTemp = 300;
+let T = 300;
 let particles = [];
-let leverValue = 0;
-const particleCount = 64;
+let leverVal = 0;
+const N = 64;
 
-class Particle {
+// Kích thước bình chứa & Pít-tông
+const containerLeft = 60;
+const containerWidth = 360;
+const containerBottom = 420;
+let pistonY = 120; // Có thể kéo pít-tông từ Y=60 đến Y=300
+let isDraggingPiston = false;
+
+class Molecule {
     constructor(x, y) {
         this.x = x;
         this.y = y;
         this.vx = (Math.random() - 0.5) * 2;
         this.vy = (Math.random() - 0.5) * 2;
         this.angle = Math.random() * Math.PI * 2;
+        this.vRot = (Math.random() - 0.5) * 0.05;
     }
 
-    update(temp, bounds) {
-        const speedMultiplier = Math.sqrt(Math.max(temp, 1)) * 0.15;
-        
-        // Cập nhật vị trí
-        this.x += this.vx * speedMultiplier;
-        this.y += this.vy * speedMultiplier;
+    update(bounds, speedFactor) {
+        this.x += this.vx * speedFactor;
+        this.y += this.vy * speedFactor;
+        this.angle += this.vRot * speedFactor;
 
-        const r = substances[currentSubstance].radius;
+        const r = substances[currentSubstance].r * 1.5;
 
-        // Va chạm tường
-        if (this.x - r < bounds.minX) { this.x = bounds.minX + r; this.vx *= -1; }
-        if (this.x + r > bounds.maxX) { this.x = bounds.maxX - r; this.vx *= -1; }
-        if (this.y - r < bounds.minY) { this.y = bounds.minY + r; this.vy *= -1; }
-        if (this.y + r > bounds.maxY) { this.y = bounds.maxY - r; this.vy *= -1; }
+        // Va chạm tường trái/phải
+        if (this.x - r < bounds.left) { this.x = bounds.left + r; this.vx *= -1; }
+        if (this.x + r > bounds.right) { this.x = bounds.right - r; this.vx *= -1; }
+
+        // Va chạm pít-tông (đỉnh) & đáy bình
+        if (this.y - r < bounds.top) { this.y = bounds.top + r; this.vy *= -1; }
+        if (this.y + r > bounds.bottom) { this.y = bounds.bottom - r; this.vy *= -1; }
     }
 
     draw() {
@@ -210,45 +223,37 @@ class Particle {
         ctx.rotate(this.angle);
 
         if (sub.isDiatomic) {
-            // Phân tử Oxy (2 nguyên tử nối nhau)
             ctx.beginPath();
-            ctx.arc(-sub.radius/1.2, 0, sub.radius, 0, Math.PI * 2);
-            ctx.arc(sub.radius/1.2, 0, sub.radius, 0, Math.PI * 2);
+            ctx.arc(-sub.r, 0, sub.r, 0, Math.PI * 2);
+            ctx.arc(sub.r, 0, sub.r, 0, Math.PI * 2);
             ctx.fillStyle = sub.color1;
             ctx.fill();
         } else if (sub.isWater) {
-            // Phân tử Nước H2O (1 O lớn, 2 H nhỏ)
+            // Oxi
             ctx.beginPath();
-            ctx.arc(0, 0, sub.radius * 1.2, 0, Math.PI * 2);
+            ctx.arc(0, 0, sub.r * 1.1, 0, Math.PI * 2);
             ctx.fillStyle = sub.color1;
             ctx.fill();
-
-            // 2 nguyên tử Hidro
+            // 2 Hidro
             ctx.beginPath();
-            ctx.arc(-sub.radius, -sub.radius * 0.8, sub.radius * 0.6, 0, Math.PI * 2);
-            ctx.arc(sub.radius, -sub.radius * 0.8, sub.radius * 0.6, 0, Math.PI * 2);
+            ctx.arc(-sub.r * 0.9, -sub.r * 0.7, sub.r * 0.6, 0, Math.PI * 2);
+            ctx.arc(sub.r * 0.9, -sub.r * 0.7, sub.r * 0.6, 0, Math.PI * 2);
             ctx.fillStyle = sub.color2;
             ctx.fill();
         } else {
-            // Khí đơn nguyên tử (Neon, Argon)
             ctx.beginPath();
-            ctx.arc(0, 0, sub.radius, 0, Math.PI * 2);
+            ctx.arc(0, 0, sub.r, 0, Math.PI * 2);
             ctx.fillStyle = sub.color1;
             ctx.fill();
         }
-
         ctx.restore();
     }
 }
 
-function selectSubstance(subKey) {
-    currentSubstance = subKey;
-    document.querySelectorAll('.btn-group button').forEach(btn => {
-        if (btn.textContent.toLowerCase().includes(subKey)) {
-            btn.classList.add('active');
-        } else if (['neon', 'argon', 'oxy', 'nước'].some(k => btn.textContent.toLowerCase().includes(k))) {
-            btn.classList.remove('active');
-        }
+function selectSubstance(sub) {
+    currentSubstance = sub;
+    document.querySelectorAll('.box:nth-child(1) button').forEach(b => {
+        b.classList.toggle('active', b.textContent.toLowerCase().includes(sub) || (sub==='oxygen'&&b.textContent.includes('O₂')) || (sub==='water'&&b.textContent.includes('Nước')));
     });
     setState('gas');
 }
@@ -260,96 +265,155 @@ function setState(state) {
     document.getElementById('btn-gas').classList.remove('active');
     document.getElementById(`btn-${state}`).classList.add('active');
 
-    if (state === 'solid') {
-        currentTemp = sub.solidT;
-        initLattice();
-    } else if (state === 'liquid') {
-        currentTemp = sub.liquidT;
-        initRandom(true);
-    } else {
-        currentTemp = sub.gasT;
-        initRandom(false);
-    }
-    updateStateText();
+    if (state === 'solid') { T = sub.solidT; initSolid(); }
+    else if (state === 'liquid') { T = sub.liquidT; initLiquid(); }
+    else { T = sub.gasT; initGas(); }
 }
 
-function initLattice() {
+function initSolid() {
     particles = [];
     const cols = 8;
-    const spacing = 35;
-    const startX = (canvas.width - (cols - 1) * spacing) / 2;
-    const startY = canvas.height - 150;
+    const spacing = 28;
+    const startX = containerLeft + (containerWidth - (cols - 1) * spacing) / 2;
+    const startY = containerBottom - 120;
 
-    for (let i = 0; i < particleCount; i++) {
+    for (let i = 0; i < N; i++) {
         const row = Math.floor(i / cols);
         const col = i % cols;
-        particles.push(new Particle(startX + col * spacing, startY + row * spacing));
+        particles.push(new Molecule(startX + col * spacing, startY + row * spacing));
     }
 }
 
-function initRandom(isLiquid) {
+function initLiquid() {
     particles = [];
-    const minY = isLiquid ? canvas.height / 2 : 20;
-    for (let i = 0; i < particleCount; i++) {
-        const x = 30 + Math.random() * (canvas.width - 60);
-        const y = minY + Math.random() * (canvas.height - minY - 40);
-        particles.push(new Particle(x, y));
+    const minY = containerBottom - 150;
+    for (let i = 0; i < N; i++) {
+        const x = containerLeft + 20 + Math.random() * (containerWidth - 40);
+        const y = minY + Math.random() * (containerBottom - minY - 20);
+        particles.push(new Molecule(x, y));
     }
 }
 
-function adjustTemp(val) {
-    leverValue = parseFloat(val);
+function initGas() {
+    particles = [];
+    for (let i = 0; i < N; i++) {
+        const x = containerLeft + 20 + Math.random() * (containerWidth - 40);
+        const y = pistonY + 20 + Math.random() * (containerBottom - pistonY - 40);
+        particles.push(new Molecule(x, y));
+    }
+}
+
+// Xử lý Sự kiện Kéo/Thả Pít-tông
+canvas.addEventListener('mousedown', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mouseY = e.clientY - rect.top;
+    const mouseX = e.clientX - rect.left;
+
+    if (mouseX >= containerLeft && mouseX <= containerLeft + containerWidth && Math.abs(mouseY - pistonY) < 20) {
+        isDraggingPiston = true;
+    }
+});
+
+canvas.addEventListener('mousemove', (e) => {
+    if (isDraggingPiston) {
+        const rect = canvas.getBoundingClientRect();
+        let mouseY = e.clientY - rect.top;
+        if (mouseY < 60) mouseY = 60;
+        if (mouseY > 300) mouseY = 300;
+        pistonY = mouseY;
+    }
+});
+
+window.addEventListener('mouseup', () => isDraggingPiston = false);
+
+function adjustTemp(v) {
+    leverVal = parseFloat(v);
+    const icon = document.getElementById('heatIcon');
+    if (leverVal > 0) icon.textContent = '🔥';
+    else if (leverVal < 0) icon.textContent = '❄️';
+    else icon.textContent = '🛑';
 }
 
 function resetLever() {
-    leverValue = 0;
+    leverVal = 0;
     document.getElementById('tempLever').value = 0;
+    document.getElementById('heatIcon').textContent = '🛑';
 }
 
-function updateStateText() {
-    const sub = substances[currentSubstance];
-    let state = 'Khí';
-    if (currentTemp <= sub.solidT) state = 'Rắn';
-    else if (currentTemp <= sub.liquidT) state = 'Lỏng';
-    
-    document.getElementById('stateDisplay').textContent = state;
+function drawContainer() {
+    // 1. Thân bình (Xilanh PhET)
+    ctx.strokeStyle = '#4dabf7';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(containerLeft, pistonY - 40);
+    ctx.lineTo(containerLeft, containerBottom);
+    ctx.lineTo(containerLeft + containerWidth, containerBottom);
+    ctx.lineTo(containerLeft + containerWidth, pistonY - 40);
+    ctx.stroke();
+
+    // 2. Pít-tông (Có tay cầm để kéo)
+    ctx.fillStyle = isDraggingPiston ? '#ff6b6b' : '#ffffd1';
+    ctx.fillRect(containerLeft + 2, pistonY - 10, containerWidth - 4, 12);
+
+    // Tay cầm pít-tông
+    ctx.fillStyle = '#888';
+    ctx.fillRect(containerLeft + containerWidth / 2 - 10, pistonY - 50, 20, 40);
+    ctx.beginPath();
+    ctx.arc(containerLeft + containerWidth / 2, pistonY - 50, 15, 0, Math.PI * 2);
+    ctx.fillStyle = '#ff6b6b';
+    ctx.fill();
+}
+
+function drawLửaLạnhEffect() {
+    if (leverVal > 0) {
+        // Vẽ hiệu ứng Lửa
+        ctx.fillStyle = `rgba(255, 69, 0, ${leverVal * 0.7})`;
+        ctx.beginPath();
+        ctx.arc(containerLeft + containerWidth / 2, containerBottom + 20, 60 * leverVal, Math.PI, 0);
+        ctx.fill();
+    } else if (leverVal < 0) {
+        // Vẽ hiệu ứng Băng
+        ctx.fillStyle = `rgba(77, 171, 247, ${Math.abs(leverVal) * 0.7})`;
+        ctx.fillRect(containerLeft, containerBottom - 5, containerWidth, 15);
+    }
 }
 
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Cập nhật nhiệt độ theo cần gạt
-    if (leverValue !== 0) {
-        currentTemp += leverValue * 4;
-        if (currentTemp < 1) currentTemp = 1;
-        updateStateText();
-    }
-    document.getElementById('tempDisplay').textContent = Math.round(currentTemp);
-
-    const bounds = { minX: 10, maxX: canvas.width - 10, minY: 10, maxY: canvas.height - 10 };
-
-    // Vẽ hiệu ứng Nhiệt độ (Lửa / Băng) ở đáy xilanh
-    if (leverValue > 0) {
-        ctx.fillStyle = `rgba(255, 69, 0, ${leverValue * 0.6})`;
-        ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
-    } else if (leverValue < 0) {
-        ctx.fillStyle = `rgba(30, 144, 255, ${Math.abs(leverValue) * 0.6})`;
-        ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+    // Biến đổi Nhiệt độ T
+    if (leverVal !== 0) {
+        T += leverVal * 3;
+        if (T < 1) T = 1;
     }
 
-    // Cập nhật & vẽ phân tử
+    const speedFactor = Math.sqrt(T) * 0.12;
+    const bounds = { left: containerLeft + 5, right: containerLeft + containerWidth - 5, top: pistonY + 10, bottom: containerBottom - 5 };
+
+    // Cập nhật & Vẽ phân tử
     particles.forEach(p => {
-        p.update(currentTemp, bounds);
+        p.update(bounds, speedFactor);
         p.draw();
     });
+
+    drawContainer();
+    drawLửaLạnhEffect();
+
+    // Tính Toán Áp Suất P = (N * T) / Volume
+    const Volume = (containerBottom - pistonY) / 100; // Đơn vị thể tích quy đổi
+    const P = ((N * T) / (Volume * 1500)).toFixed(2);
+
+    // Cập nhật UI
+    document.getElementById('tempReadout').textContent = Math.round(T);
+    document.getElementById('pressureReadout').textContent = P;
 
     requestAnimationFrame(animate);
 }
 
-// Khởi tạo
+// Khởi chạy
 setState('gas');
 animate();
 </script>
 
 </body>
-</html>
+    </html>
