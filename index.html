@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mô Phỏng Quá Trình Nhiệt Động Lực Học (PhET Style)</title>
+    <title>Tuất</title>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; user-select: none; }
         body {
@@ -15,7 +15,7 @@
             flex-direction: column;
             align-items: center;
         }
-        h1 { margin: 0 0 15px 0; font-size: 1.5em; color: #4dabf7; text-align: center; }
+        h1 { margin: 0 0 10px 0; font-size: 1.5em; color: #4dabf7; text-align: center; }
         .sim-container {
             display: flex;
             gap: 15px;
@@ -25,12 +25,9 @@
             border: 2px solid #333;
             box-shadow: 0 10px 30px rgba(0,0,0,0.7);
         }
-        canvas {
-            background: #000000;
-            border-radius: 8px;
-        }
+        canvas { background: #000000; border-radius: 8px; }
         .panel {
-            width: 290px;
+            width: 300px;
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -50,38 +47,18 @@
             padding-bottom: 4px;
             text-transform: uppercase;
         }
-        .btn-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px;
-        }
-        button {
-            padding: 6px 8px;
-            border: none;
-            border-radius: 4px;
-            background: #3b3b3b;
-            color: #fff;
-            font-size: 0.8em;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        button:hover { background: #4dabf7; color: #000; }
-        button.active { background: #ff6b6b; color: #fff; font-weight: bold; }
+        .radio-group { display: flex; flex-direction: column; gap: 6px; font-size: 0.85em; }
+        .radio-group label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
         
-        .radio-group {
+        .control-row {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 4px;
+            margin-bottom: 8px;
             font-size: 0.85em;
         }
-        .radio-group label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-        }
+        input[type="range"].h-slider { width: 100%; cursor: pointer; }
 
-        /* Cần gạt nhiệt độ */
         .heater-control {
             display: flex;
             align-items: center;
@@ -90,78 +67,61 @@
             padding: 8px 12px;
             border-radius: 6px;
         }
-        .slider-axis {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            height: 90px;
-        }
+        .slider-axis { display: flex; flex-direction: column; align-items: center; height: 80px; }
         input[type="range"].v-slider {
             writing-mode: bt-lr;
             -webkit-appearance: slider-vertical;
-            width: 14px;
-            height: 80px;
-            cursor: pointer;
+            width: 14px; height: 70px; cursor: pointer;
         }
-        .labels {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: 80px;
-            font-size: 0.75em;
-            font-weight: bold;
-        }
+        .labels { display: flex; flex-direction: column; justify-content: space-between; height: 70px; font-size: 0.75em; font-weight: bold; }
         .gauge-val {
-            font-family: monospace;
-            font-size: 1.1em;
-            color: #51cf66;
-            text-align: center;
-            background: #111;
-            padding: 4px;
-            border-radius: 4px;
-            border: 1px solid #333;
+            font-family: monospace; font-size: 1.1em; color: #51cf66;
+            text-align: center; background: #111; padding: 4px; border-radius: 4px; border: 1px solid #333;
         }
-        .hint {
-            font-size: 0.75em;
-            color: #aaa;
-            margin-top: 4px;
-            font-style: italic;
+        .hint { font-size: 0.75em; color: #aaa; margin-top: 4px; font-style: italic; }
+        .pump-btn {
+            background: #ff922b; color: #000; font-weight: bold; border: none;
+            padding: 8px; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 4px;
         }
+        .pump-btn:hover { background: #ffa8a8; }
     </style>
 </head>
 <body>
 
-<h1>Mô Phỏng Các Quá Trình Nhiệt Động Lực Học</h1>
+<h1>Mô Phỏng Khí Lý Tưởng (Ống Bơm & Điều Chỉnh Áp Suất)</h1>
 
 <div class="sim-container">
-    <canvas id="phetCanvas" width="460" height="460"></canvas>
+    <canvas id="phetCanvas" width="480" height="460"></canvas>
 
     <div class="panel">
-        <!-- 1. Giữ Cố Định Đại Lượng (Đẳng quá trình) -->
-        <div class="box" style="border: 1fr solid #4dabf7;">
+        <!-- 1. Đẳng quá trình -->
+        <div class="box" style="border: 1px solid #4dabf7;">
             <div class="box-title">Khóa Đại Lượng (Đẳng Quá Trình)</div>
             <div class="radio-group">
-                <label><input type="radio" name="keepConst" value="none" checked onchange="setProcess('none')"> Không khóa (Tự do)</label>
-                <label><input type="radio" name="keepConst" value="volume" onchange="setProcess('volume')"> 🔒 <b>Đẳng Tích</b> (Thể tích V cố định)</label>
-                <label><input type="radio" name="keepConst" value="pressure" onchange="setProcess('pressure')"> 🔒 <b>Đẳng Áp</b> (Áp suất P cố định)</label>
+                <label><input type="radio" name="keepConst" value="none" checked onchange="setProcess('none')"> Tự do (Kéo pít-tông tùy ý)</label>
+                <label><input type="radio" name="keepConst" value="temp" onchange="setProcess('temp')"> 🔒 <b>Đẳng nhiệt</b> (T = const)</label>
+                <label><input type="radio" name="keepConst" value="volume" onchange="setProcess('volume')"> 🔒 <b>Đẳng tích</b> (V = const)</label>
+                <label><input type="radio" name="keepConst" value="pressure" onchange="setProcess('pressure')"> 🔒 <b>Đẳng áp</b> (P = const)</label>
             </div>
-            <div class="hint" id="processHint">Kéo pít-tông bằng chuột để thay đổi Thể tích V.</div>
+            <div class="hint" id="processHint">Kéo ống bơm để thêm hạt khí vào bình.</div>
         </div>
 
-        <!-- 2. Chọn Chất -->
+        <!-- 2. Bơm hạt & Thay đổi Áp suất -->
         <div class="box">
-            <div class="box-title">Chất Khí</div>
-            <div class="btn-grid">
-                <button class="active" onclick="selectSubstance('neon')">Neon</button>
-                <button onclick="selectSubstance('argon')">Argon</button>
-                <button onclick="selectSubstance('oxygen')">Oxy (O₂)</button>
-                <button onclick="selectSubstance('water')">Nước (H₂O)</button>
+            <div class="box-title">Tác Động Áp Suất & Số Hạt</div>
+            <div class="control-row">
+                <label>Số lượng hạt (N): <b id="particleCountText" style="color: #51cf66;">50</b></label>
+                <button class="pump-btn" onclick="pumpParticles(10)">💨 Nhấn Bơm +10 Hạt Khí</button>
+            </div>
+            <div class="control-row" style="margin-top: 8px;">
+                <label>Điều chỉnh Áp suất P mong muốn (atm):</label>
+                <input type="range" id="pressureSlider" class="h-slider" min="0.2" max="3.0" step="0.05" value="1.0" oninput="manualAdjustPressure(this.value)">
             </div>
         </div>
 
-        <!-- 3. Điều Chỉnh Nhiệt Độ -->
+        <!-- 3. Nhiệt độ -->
         <div class="box">
-            <div class="box-title">Làm Nóng / Làm Lạnh</div>
+            <div class="box-title">Truyền Nhiệt (Nóng / Lạnh)</div>
             <div class="heater-control">
                 <div class="labels">
                     <span style="color: #ff6b6b;">🔥 NÓNG</span>
@@ -175,14 +135,14 @@
             </div>
         </div>
 
-        <!-- 4. Hiển Thị Thông Số -->
+        <!-- 4. Thông số -->
         <div class="box">
             <div class="box-title">Đồng Hồ Đo PhET</div>
             <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 0.85em;">
                 <span>Nhiệt độ (T): <b id="tempReadout" style="color: #ffd43b;">300</b> K</span>
                 <span>Thể tích (V): <b id="volReadout" style="color: #4dabf7;">1.00</b> L</span>
             </div>
-            <div>Áp suất (P):</div>
+            <div>Áp suất khí (P):</div>
             <div class="gauge-val"><span id="pressureReadout">1.00</span> atm</div>
         </div>
     </div>
@@ -192,123 +152,111 @@
 const canvas = document.getElementById('phetCanvas');
 const ctx = canvas.getContext('2d');
 
-const substances = {
-    neon:   { name: 'Neon', color1: '#ff4757', r: 7 },
-    argon:  { name: 'Argon', color1: '#2ed573', r: 9 },
-    oxygen: { name: 'Oxy', color1: '#1e90ff', isDiatomic: true, r: 6 },
-    water:  { name: 'Nước', color1: '#ff4757', color2: '#ffffff', isWater: true, r: 6 }
-};
-
-let currentSubstance = 'neon';
 let T = 300;
 let targetPressure = 1.0;
-let lockMode = 'none'; // 'none', 'volume', 'pressure'
+let lockMode = 'none';
 
-const N = 60;
 let particles = [];
 let leverVal = 0;
 
 // Bình chứa
-const containerLeft = 60;
-const containerWidth = 340;
+const containerLeft = 100;
+const containerWidth = 320;
 const containerBottom = 420;
-let pistonY = 180; // Vị trí Pít-tông ban đầu (Min Y: 80, Max Y: 340)
+let pistonY = 180;
 let isDraggingPiston = false;
 
-class Molecule {
+// Cần bơm (Pump handle animation)
+let pumpOffsetY = 0;
+
+class IdealGasParticle {
     constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.vx = (Math.random() - 0.5) * 2;
-        this.vy = (Math.random() - 0.5) * 2;
-        this.angle = Math.random() * Math.PI * 2;
-        this.vRot = (Math.random() - 0.5) * 0.05;
+        const angle = Math.random() * Math.PI * 2;
+        this.vx = Math.cos(angle);
+        this.vy = Math.sin(angle);
+        this.r = 3;
     }
 
     update(bounds, speedFactor) {
         this.x += this.vx * speedFactor;
         this.y += this.vy * speedFactor;
-        this.angle += this.vRot * speedFactor;
 
-        const r = substances[currentSubstance].r * 1.5;
-
-        // Va chạm tường trái/phải
-        if (this.x - r < bounds.left) { this.x = bounds.left + r; this.vx *= -1; }
-        if (this.x + r > bounds.right) { this.x = bounds.right - r; this.vx *= -1; }
-
-        // Va chạm pít-tông và đáy bình
-        if (this.y - r < bounds.top) { this.y = bounds.top + r; this.vy *= -1; }
-        if (this.y + r > bounds.bottom) { this.y = bounds.bottom - r; this.vy *= -1; }
+        if (this.x - this.r < bounds.left) { this.x = bounds.left + this.r; this.vx *= -1; }
+        if (this.x + this.r > bounds.right) { this.x = bounds.right - this.r; this.vx *= -1; }
+        if (this.y - this.r < bounds.top) { this.y = bounds.top + this.r; this.vy *= -1; }
+        if (this.y + this.r > bounds.bottom) { this.y = bounds.bottom - this.r; this.vy *= -1; }
     }
 
     draw() {
-        const sub = substances[currentSubstance];
-        ctx.save();
-        ctx.translate(this.x, this.y);
-        ctx.rotate(this.angle);
-
-        if (sub.isDiatomic) {
-            ctx.beginPath();
-            ctx.arc(-sub.r, 0, sub.r, 0, Math.PI * 2);
-            ctx.arc(sub.r, 0, sub.r, 0, Math.PI * 2);
-            ctx.fillStyle = sub.color1;
-            ctx.fill();
-        } else if (sub.isWater) {
-            ctx.beginPath();
-            ctx.arc(0, 0, sub.r * 1.1, 0, Math.PI * 2);
-            ctx.fillStyle = sub.color1;
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(-sub.r * 0.9, -sub.r * 0.7, sub.r * 0.6, 0, Math.PI * 2);
-            ctx.arc(sub.r * 0.9, -sub.r * 0.7, sub.r * 0.6, 0, Math.PI * 2);
-            ctx.fillStyle = sub.color2;
-            ctx.fill();
-        } else {
-            ctx.beginPath();
-            ctx.arc(0, 0, sub.r, 0, Math.PI * 2);
-            ctx.fillStyle = sub.color1;
-            ctx.fill();
-        }
-        ctx.restore();
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+        ctx.fillStyle = '#51cf66';
+        ctx.fill();
     }
 }
 
-function initGas() {
-    particles = [];
-    for (let i = 0; i < N; i++) {
-        const x = containerLeft + 20 + Math.random() * (containerWidth - 40);
-        const y = pistonY + 20 + Math.random() * (containerBottom - pistonY - 40);
-        particles.push(new Molecule(x, y));
-    }
-}
+function pumpParticles(count) {
+    // Hiệu ứng kéo cần bơm xuống rồi nảy lên
+    pumpOffsetY = 25;
+    setTimeout(() => pumpOffsetY = 0, 150);
 
-function selectSubstance(sub) {
-    currentSubstance = sub;
-    document.querySelectorAll('.box:nth-child(2) button').forEach(b => {
-        b.classList.toggle('active', b.textContent.toLowerCase().includes(sub) || (sub==='oxygen'&&b.textContent.includes('O₂')) || (sub==='water'&&b.textContent.includes('Nước')));
-    });
+    for (let i = 0; i < count; i++) {
+        const x = containerLeft + 15 + Math.random() * (containerWidth - 30);
+        const y = pistonY + 15 + Math.random() * (containerBottom - pistonY - 30);
+        particles.push(new IdealGasParticle(x, y));
+    }
+    document.getElementById('particleCountText').textContent = particles.length;
 }
 
 function setProcess(mode) {
     lockMode = mode;
     const hint = document.getElementById('processHint');
+    const tempLever = document.getElementById('tempLever');
 
-    if (mode === 'volume') {
-        hint.innerHTML = '🔒 <b>Đẳng tích:</b> Pít-tông bị khóa chặt. Nhiệt độ tăng làm Áp suất tăng.';
+    if (mode === 'temp') {
+        hint.innerHTML = '🔒 <b>Đẳng nhiệt:</b> T cố định. Kéo Pít-tông hoặc thanh Áp suất để đổi V.';
+        tempLever.disabled = true;
+    } else if (mode === 'volume') {
+        hint.innerHTML = '🔒 <b>Đẳng tích:</b> V cố định. Thay đổi T hoặc số hạt để đổi P.';
+        tempLever.disabled = false;
     } else if (mode === 'pressure') {
-        hint.innerHTML = '🔒 <b>Đẳng áp:</b> Áp suất P được giữ nguyên. Pít-tông tự nâng/hạ khi thay đổi Nhiệt độ.';
-        // Lưu giá trị Áp suất hiện tại làm chuẩn
+        hint.innerHTML = '🔒 <b>Đẳng áp:</b> P cố định. Thể tích tự động đổi khi tăng/giảm Nhiệt độ T.';
+        tempLever.disabled = false;
         const currentV = (containerBottom - pistonY) / 240;
-        targetPressure = (N * T) / (currentV * 7200);
+        targetPressure = (particles.length * T) / (currentV * 12000);
+        document.getElementById('pressureSlider').value = targetPressure.toFixed(2);
     } else {
-        hint.innerHTML = 'Kéo pít-tông bằng chuột để thay đổi Thể tích V.';
+        hint.innerHTML = 'Bơm thêm hạt khí hoặc kéo pít-tông tùy ý.';
+        tempLever.disabled = false;
     }
 }
 
-// Bắt sự kiện kéo Pít-tông bằng chuột
-canvas.addEventListener('mousedown', (e) => {
-    if (lockMode === 'volume') return; // Không cho kéo nếu đang Đẳng tích
+// Thay đổi áp suất trực tiếp bằng thanh trượt
+function manualAdjustPressure(val) {
+    targetPressure = parseFloat(val);
+    const N = particles.length;
+    if (N === 0) return;
 
+    if (lockMode === 'volume') {
+        // V cố định -> Điều chỉnh T để đạt P mong muốn (P ∝ T)
+        const V = (containerBottom - pistonY) / 240;
+        T = (targetPressure * V * 12000) / N;
+        if (T < 10) T = 10;
+    } else {
+        // Điều chỉnh vị trí Pít-tông để thay đổi Thể tích V tương ứng với Áp suất mới
+        const desiredV = (N * T) / (targetPressure * 12000);
+        let desiredPistonY = containerBottom - (desiredV * 240);
+        if (desiredPistonY < 80) desiredPistonY = 80;
+        if (desiredPistonY > 340) desiredPistonY = 340;
+        pistonY = desiredPistonY;
+    }
+}
+
+// Sự kiện kéo pít-tông
+canvas.addEventListener('mousedown', (e) => {
+    if (lockMode === 'volume') return;
     const rect = canvas.getBoundingClientRect();
     const mouseY = e.clientY - rect.top;
     const mouseX = e.clientX - rect.left;
@@ -323,7 +271,7 @@ canvas.addEventListener('mousemove', (e) => {
         const rect = canvas.getBoundingClientRect();
         let mouseY = e.clientY - rect.top;
         if (mouseY < 80) mouseY = 80;
-        if (mouseY > 320) mouseY = 320;
+        if (mouseY > 340) mouseY = 340;
         pistonY = mouseY;
     }
 });
@@ -331,6 +279,7 @@ canvas.addEventListener('mousemove', (e) => {
 window.addEventListener('mouseup', () => isDraggingPiston = false);
 
 function adjustTemp(v) {
+    if (lockMode === 'temp') return;
     leverVal = parseFloat(v);
     const icon = document.getElementById('heatIcon');
     if (leverVal > 0) icon.textContent = '🔥';
@@ -344,10 +293,10 @@ function resetLever() {
     document.getElementById('heatIcon').textContent = '🛑';
 }
 
-function drawContainer() {
-    // 1. Bình xilanh
+function drawContainerAndPump() {
+    // 1. Bình Xilanh
     ctx.strokeStyle = '#4dabf7';
-    ctx.lineWidth = 5;
+    ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.moveTo(containerLeft, 60);
     ctx.lineTo(containerLeft, containerBottom);
@@ -359,13 +308,11 @@ function drawContainer() {
     ctx.fillStyle = (lockMode === 'volume') ? '#555' : (isDraggingPiston ? '#ff6b6b' : '#ffffd1');
     ctx.fillRect(containerLeft + 2, pistonY - 10, containerWidth - 4, 14);
 
-    // Khóa đẳng tích (vẽ chốt khóa)
     if (lockMode === 'volume') {
         ctx.fillStyle = '#ff4757';
         ctx.fillRect(containerLeft - 15, pistonY - 12, 12, 18);
         ctx.fillRect(containerLeft + containerWidth + 3, pistonY - 12, 12, 18);
     } else {
-        // Tay cầm pít-tông
         ctx.fillStyle = '#888';
         ctx.fillRect(containerLeft + containerWidth / 2 - 8, pistonY - 50, 16, 40);
         ctx.beginPath();
@@ -373,6 +320,24 @@ function drawContainer() {
         ctx.fillStyle = isDraggingPiston ? '#ff6b6b' : '#4dabf7';
         ctx.fill();
     }
+
+    // 3. Mô phỏng Ống Bơm PhET bên trái
+    const pumpX = 35;
+    const pumpY = 280 + pumpOffsetY;
+    
+    // Thân ống bơm
+    ctx.fillStyle = '#ff922b';
+    ctx.fillRect(pumpX - 12, pumpY, 24, 90);
+    // Vòi kết nối vào xilanh
+    ctx.strokeStyle = '#aaa';
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.moveTo(pumpX, pumpY + 60);
+    ctx.lineTo(containerLeft, containerBottom - 40);
+    ctx.stroke();
+    // Tay cầm bơm
+    ctx.fillStyle = '#e03131';
+    ctx.fillRect(pumpX - 25, pumpY - 15, 50, 15);
 }
 
 function drawHeatEffect() {
@@ -390,53 +355,50 @@ function drawHeatEffect() {
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Cập nhật Nhiệt độ T
-    if (leverVal !== 0) {
+    if (leverVal !== 0 && lockMode !== 'temp') {
         T += leverVal * 3;
-        if (T < 5) T = 5;
+        if (T < 10) T = 10;
     }
 
-    // Xử lý Quá trình ĐẲNG ÁP (Tự điều chỉnh Thể tích/Pít-tông)
-    if (lockMode === 'pressure') {
-        // V tỉ lệ thuận với T -> Pít-tông dịch chuyển theo T
-        // V = (N * T) / (P * const)
-        const desiredHeight = (N * T) / (targetPressure * 7200);
-        let desiredPistonY = containerBottom - (desiredHeight * 240);
+    const N = particles.length;
 
+    // Đẳng áp: Tự động điều chỉnh Pít-tông theo Nhiệt độ T và số hạt N
+    if (lockMode === 'pressure' && N > 0) {
+        const desiredV = (N * T) / (targetPressure * 12000);
+        let desiredPistonY = containerBottom - (desiredV * 240);
         if (desiredPistonY < 80) desiredPistonY = 80;
-        if (desiredPistonY > 320) desiredPistonY = 320;
-
-        // Trôi mượt tới vị trí mới
+        if (desiredPistonY > 340) desiredPistonY = 340;
         pistonY += (desiredPistonY - pistonY) * 0.1;
     }
 
-    const speedFactor = Math.sqrt(T) * 0.12;
-    const bounds = { left: containerLeft + 5, right: containerLeft + containerWidth - 5, top: pistonY + 10, bottom: containerBottom - 5 };
+    const speedFactor = Math.sqrt(T) * 0.15;
+    const bounds = { left: containerLeft + 4, right: containerLeft + containerWidth - 4, top: pistonY + 8, bottom: containerBottom - 4 };
 
-    // Cập nhật & Vẽ phân tử
     particles.forEach(p => {
         p.update(bounds, speedFactor);
         p.draw();
     });
 
-    drawContainer();
+    drawContainerAndPump();
     drawHeatEffect();
 
-    // Tính Thể tích V và Áp suất P
+    // Tính toán P và V
     const currentHeight = containerBottom - pistonY;
-    const V = (currentHeight / 240); // Chuẩn hóa V từ ~0.4 đến ~1.4 Lít
-    const P = ((N * T) / (V * 7200)).toFixed(2);
+    const V = (currentHeight / 240);
+    const P = N > 0 ? ((N * T) / (V * 12000)).toFixed(2) : "0.00";
 
-    // Cập nhật UI
     document.getElementById('tempReadout').textContent = Math.round(T);
     document.getElementById('volReadout').textContent = V.toFixed(2);
     document.getElementById('pressureReadout').textContent = lockMode === 'pressure' ? targetPressure.toFixed(2) : P;
 
+    if (lockMode !== 'pressure') {
+        document.getElementById('pressureSlider').value = P;
+    }
+
     requestAnimationFrame(animate);
 }
 
-// Khởi tạo
-initGas();
+pumpParticles(50);
 animate();
 </script>
 
