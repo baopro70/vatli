@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PhET Simulation - Trạng Thái Vật Chất & Khí Lý Tưởng</title>
+    <title>Mô Phỏng Quá Trình Nhiệt Động Lực Học (PhET Style)</title>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; user-select: none; }
         body {
@@ -15,7 +15,7 @@
             flex-direction: column;
             align-items: center;
         }
-        h1 { margin: 0 0 15px 0; font-size: 1.6em; color: #4dabf7; text-shadow: 0 0 8px rgba(77,171,247,0.3); }
+        h1 { margin: 0 0 15px 0; font-size: 1.5em; color: #4dabf7; text-align: center; }
         .sim-container {
             display: flex;
             gap: 15px;
@@ -28,25 +28,24 @@
         canvas {
             background: #000000;
             border-radius: 8px;
-            cursor: pointer;
         }
         .panel {
-            width: 280px;
+            width: 290px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
         .box {
             background: #2a2a2a;
-            padding: 12px;
+            padding: 10px 12px;
             border-radius: 8px;
             border: 1px solid #444;
         }
         .box-title {
             font-weight: bold;
-            font-size: 0.9em;
+            font-size: 0.85em;
             color: #ffd43b;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             border-bottom: 1px solid #444;
             padding-bottom: 4px;
             text-transform: uppercase;
@@ -57,71 +56,101 @@
             gap: 6px;
         }
         button {
-            padding: 8px;
+            padding: 6px 8px;
             border: none;
             border-radius: 4px;
             background: #3b3b3b;
             color: #fff;
-            font-size: 0.85em;
+            font-size: 0.8em;
             cursor: pointer;
             transition: all 0.2s;
         }
         button:hover { background: #4dabf7; color: #000; }
         button.active { background: #ff6b6b; color: #fff; font-weight: bold; }
         
-        /* Cần gạt nhiệt độ phong cách PhET */
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 0.85em;
+        }
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        /* Cần gạt nhiệt độ */
         .heater-control {
             display: flex;
             align-items: center;
             justify-content: space-between;
             background: #1a1a1a;
-            padding: 10px;
+            padding: 8px 12px;
             border-radius: 6px;
         }
         .slider-axis {
             display: flex;
             flex-direction: column;
             align-items: center;
-            height: 110px;
+            height: 90px;
         }
         input[type="range"].v-slider {
             writing-mode: bt-lr;
             -webkit-appearance: slider-vertical;
-            width: 16px;
-            height: 90px;
+            width: 14px;
+            height: 80px;
             cursor: pointer;
         }
         .labels {
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            height: 90px;
-            font-size: 0.8em;
+            height: 80px;
+            font-size: 0.75em;
             font-weight: bold;
         }
         .gauge-val {
             font-family: monospace;
-            font-size: 1.2em;
+            font-size: 1.1em;
             color: #51cf66;
             text-align: center;
             background: #111;
-            padding: 6px;
+            padding: 4px;
             border-radius: 4px;
             border: 1px solid #333;
+        }
+        .hint {
+            font-size: 0.75em;
+            color: #aaa;
+            margin-top: 4px;
+            font-style: italic;
         }
     </style>
 </head>
 <body>
 
-<h1>Mô Phỏng Trạng Thái Vật Chất (PhET Style)</h1>
+<h1>Mô Phỏng Các Quá Trình Nhiệt Động Lực Học</h1>
 
 <div class="sim-container">
-    <canvas id="phetCanvas" width="480" height="480"></canvas>
+    <canvas id="phetCanvas" width="460" height="460"></canvas>
 
     <div class="panel">
-        <!-- 1. Chọn Nguyên Tử / Phân Tử -->
+        <!-- 1. Giữ Cố Định Đại Lượng (Đẳng quá trình) -->
+        <div class="box" style="border: 1fr solid #4dabf7;">
+            <div class="box-title">Khóa Đại Lượng (Đẳng Quá Trình)</div>
+            <div class="radio-group">
+                <label><input type="radio" name="keepConst" value="none" checked onchange="setProcess('none')"> Không khóa (Tự do)</label>
+                <label><input type="radio" name="keepConst" value="volume" onchange="setProcess('volume')"> 🔒 <b>Đẳng Tích</b> (Thể tích V cố định)</label>
+                <label><input type="radio" name="keepConst" value="pressure" onchange="setProcess('pressure')"> 🔒 <b>Đẳng Áp</b> (Áp suất P cố định)</label>
+            </div>
+            <div class="hint" id="processHint">Kéo pít-tông bằng chuột để thay đổi Thể tích V.</div>
+        </div>
+
+        <!-- 2. Chọn Chất -->
         <div class="box">
-            <div class="box-title">Phân Tử / Nguyên Tử</div>
+            <div class="box-title">Chất Khí</div>
             <div class="btn-grid">
                 <button class="active" onclick="selectSubstance('neon')">Neon</button>
                 <button onclick="selectSubstance('argon')">Argon</button>
@@ -130,19 +159,9 @@
             </div>
         </div>
 
-        <!-- 2. Chọn Trạng Thái -->
-        <div class="box">
-            <div class="box-title">Trạng Thái Khoản</div>
-            <div class="btn-grid" style="grid-template-columns: 1fr 1fr 1fr;">
-                <button id="btn-solid" onclick="setState('solid')">Rắn</button>
-                <button id="btn-liquid" onclick="setState('liquid')">Lỏng</button>
-                <button id="btn-gas" class="active" onclick="setState('gas')">Khí</button>
-            </div>
-        </div>
-
         <!-- 3. Điều Chỉnh Nhiệt Độ -->
         <div class="box">
-            <div class="box-title">Nhiệt Độ (Lửa / Băng)</div>
+            <div class="box-title">Làm Nóng / Làm Lạnh</div>
             <div class="heater-control">
                 <div class="labels">
                     <span style="color: #ff6b6b;">🔥 NÓNG</span>
@@ -156,12 +175,15 @@
             </div>
         </div>
 
-        <!-- 4. Hiển Thị Áp Suất & Nhiệt Độ -->
+        <!-- 4. Hiển Thị Thông Số -->
         <div class="box">
             <div class="box-title">Đồng Hồ Đo PhET</div>
-            <div style="margin-bottom: 6px; font-size: 0.85em;">Nhiệt độ (T): <span id="tempReadout" style="color: #ffd43b;">300</span> K</div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 0.85em;">
+                <span>Nhiệt độ (T): <b id="tempReadout" style="color: #ffd43b;">300</b> K</span>
+                <span>Thể tích (V): <b id="volReadout" style="color: #4dabf7;">1.00</b> L</span>
+            </div>
             <div>Áp suất (P):</div>
-            <div class="gauge-val"><span id="pressureReadout">0.00</span> atm</div>
+            <div class="gauge-val"><span id="pressureReadout">1.00</span> atm</div>
         </div>
     </div>
 </div>
@@ -171,23 +193,26 @@ const canvas = document.getElementById('phetCanvas');
 const ctx = canvas.getContext('2d');
 
 const substances = {
-    neon:   { name: 'Neon', color1: '#ff4757', solidT: 14, liquidT: 26, gasT: 300, r: 7 },
-    argon:  { name: 'Argon', color1: '#2ed573', solidT: 40, liquidT: 86, gasT: 300, r: 9 },
-    oxygen: { name: 'Oxy', color1: '#1e90ff', isDiatomic: true, solidT: 30, liquidT: 75, gasT: 300, r: 6 },
-    water:  { name: 'Nước', color1: '#ff4757', color2: '#ffffff', isWater: true, solidT: 150, liquidT: 298, gasT: 400, r: 6 }
+    neon:   { name: 'Neon', color1: '#ff4757', r: 7 },
+    argon:  { name: 'Argon', color1: '#2ed573', r: 9 },
+    oxygen: { name: 'Oxy', color1: '#1e90ff', isDiatomic: true, r: 6 },
+    water:  { name: 'Nước', color1: '#ff4757', color2: '#ffffff', isWater: true, r: 6 }
 };
 
 let currentSubstance = 'neon';
 let T = 300;
+let targetPressure = 1.0;
+let lockMode = 'none'; // 'none', 'volume', 'pressure'
+
+const N = 60;
 let particles = [];
 let leverVal = 0;
-const N = 64;
 
-// Kích thước bình chứa & Pít-tông
+// Bình chứa
 const containerLeft = 60;
-const containerWidth = 360;
+const containerWidth = 340;
 const containerBottom = 420;
-let pistonY = 120; // Có thể kéo pít-tông từ Y=60 đến Y=300
+let pistonY = 180; // Vị trí Pít-tông ban đầu (Min Y: 80, Max Y: 340)
 let isDraggingPiston = false;
 
 class Molecule {
@@ -211,7 +236,7 @@ class Molecule {
         if (this.x - r < bounds.left) { this.x = bounds.left + r; this.vx *= -1; }
         if (this.x + r > bounds.right) { this.x = bounds.right - r; this.vx *= -1; }
 
-        // Va chạm pít-tông (đỉnh) & đáy bình
+        // Va chạm pít-tông và đáy bình
         if (this.y - r < bounds.top) { this.y = bounds.top + r; this.vy *= -1; }
         if (this.y + r > bounds.bottom) { this.y = bounds.bottom - r; this.vy *= -1; }
     }
@@ -229,12 +254,10 @@ class Molecule {
             ctx.fillStyle = sub.color1;
             ctx.fill();
         } else if (sub.isWater) {
-            // Oxi
             ctx.beginPath();
             ctx.arc(0, 0, sub.r * 1.1, 0, Math.PI * 2);
             ctx.fillStyle = sub.color1;
             ctx.fill();
-            // 2 Hidro
             ctx.beginPath();
             ctx.arc(-sub.r * 0.9, -sub.r * 0.7, sub.r * 0.6, 0, Math.PI * 2);
             ctx.arc(sub.r * 0.9, -sub.r * 0.7, sub.r * 0.6, 0, Math.PI * 2);
@@ -250,50 +273,6 @@ class Molecule {
     }
 }
 
-function selectSubstance(sub) {
-    currentSubstance = sub;
-    document.querySelectorAll('.box:nth-child(1) button').forEach(b => {
-        b.classList.toggle('active', b.textContent.toLowerCase().includes(sub) || (sub==='oxygen'&&b.textContent.includes('O₂')) || (sub==='water'&&b.textContent.includes('Nước')));
-    });
-    setState('gas');
-}
-
-function setState(state) {
-    const sub = substances[currentSubstance];
-    document.getElementById('btn-solid').classList.remove('active');
-    document.getElementById('btn-liquid').classList.remove('active');
-    document.getElementById('btn-gas').classList.remove('active');
-    document.getElementById(`btn-${state}`).classList.add('active');
-
-    if (state === 'solid') { T = sub.solidT; initSolid(); }
-    else if (state === 'liquid') { T = sub.liquidT; initLiquid(); }
-    else { T = sub.gasT; initGas(); }
-}
-
-function initSolid() {
-    particles = [];
-    const cols = 8;
-    const spacing = 28;
-    const startX = containerLeft + (containerWidth - (cols - 1) * spacing) / 2;
-    const startY = containerBottom - 120;
-
-    for (let i = 0; i < N; i++) {
-        const row = Math.floor(i / cols);
-        const col = i % cols;
-        particles.push(new Molecule(startX + col * spacing, startY + row * spacing));
-    }
-}
-
-function initLiquid() {
-    particles = [];
-    const minY = containerBottom - 150;
-    for (let i = 0; i < N; i++) {
-        const x = containerLeft + 20 + Math.random() * (containerWidth - 40);
-        const y = minY + Math.random() * (containerBottom - minY - 20);
-        particles.push(new Molecule(x, y));
-    }
-}
-
 function initGas() {
     particles = [];
     for (let i = 0; i < N; i++) {
@@ -303,13 +282,38 @@ function initGas() {
     }
 }
 
-// Xử lý Sự kiện Kéo/Thả Pít-tông
+function selectSubstance(sub) {
+    currentSubstance = sub;
+    document.querySelectorAll('.box:nth-child(2) button').forEach(b => {
+        b.classList.toggle('active', b.textContent.toLowerCase().includes(sub) || (sub==='oxygen'&&b.textContent.includes('O₂')) || (sub==='water'&&b.textContent.includes('Nước')));
+    });
+}
+
+function setProcess(mode) {
+    lockMode = mode;
+    const hint = document.getElementById('processHint');
+
+    if (mode === 'volume') {
+        hint.innerHTML = '🔒 <b>Đẳng tích:</b> Pít-tông bị khóa chặt. Nhiệt độ tăng làm Áp suất tăng.';
+    } else if (mode === 'pressure') {
+        hint.innerHTML = '🔒 <b>Đẳng áp:</b> Áp suất P được giữ nguyên. Pít-tông tự nâng/hạ khi thay đổi Nhiệt độ.';
+        // Lưu giá trị Áp suất hiện tại làm chuẩn
+        const currentV = (containerBottom - pistonY) / 240;
+        targetPressure = (N * T) / (currentV * 7200);
+    } else {
+        hint.innerHTML = 'Kéo pít-tông bằng chuột để thay đổi Thể tích V.';
+    }
+}
+
+// Bắt sự kiện kéo Pít-tông bằng chuột
 canvas.addEventListener('mousedown', (e) => {
+    if (lockMode === 'volume') return; // Không cho kéo nếu đang Đẳng tích
+
     const rect = canvas.getBoundingClientRect();
     const mouseY = e.clientY - rect.top;
     const mouseX = e.clientX - rect.left;
 
-    if (mouseX >= containerLeft && mouseX <= containerLeft + containerWidth && Math.abs(mouseY - pistonY) < 20) {
+    if (mouseX >= containerLeft && mouseX <= containerLeft + containerWidth && Math.abs(mouseY - pistonY) < 25) {
         isDraggingPiston = true;
     }
 });
@@ -318,8 +322,8 @@ canvas.addEventListener('mousemove', (e) => {
     if (isDraggingPiston) {
         const rect = canvas.getBoundingClientRect();
         let mouseY = e.clientY - rect.top;
-        if (mouseY < 60) mouseY = 60;
-        if (mouseY > 300) mouseY = 300;
+        if (mouseY < 80) mouseY = 80;
+        if (mouseY > 320) mouseY = 320;
         pistonY = mouseY;
     }
 });
@@ -341,38 +345,43 @@ function resetLever() {
 }
 
 function drawContainer() {
-    // 1. Thân bình (Xilanh PhET)
+    // 1. Bình xilanh
     ctx.strokeStyle = '#4dabf7';
     ctx.lineWidth = 5;
     ctx.beginPath();
-    ctx.moveTo(containerLeft, pistonY - 40);
+    ctx.moveTo(containerLeft, 60);
     ctx.lineTo(containerLeft, containerBottom);
     ctx.lineTo(containerLeft + containerWidth, containerBottom);
-    ctx.lineTo(containerLeft + containerWidth, pistonY - 40);
+    ctx.lineTo(containerLeft + containerWidth, 60);
     ctx.stroke();
 
-    // 2. Pít-tông (Có tay cầm để kéo)
-    ctx.fillStyle = isDraggingPiston ? '#ff6b6b' : '#ffffd1';
-    ctx.fillRect(containerLeft + 2, pistonY - 10, containerWidth - 4, 12);
+    // 2. Pít-tông
+    ctx.fillStyle = (lockMode === 'volume') ? '#555' : (isDraggingPiston ? '#ff6b6b' : '#ffffd1');
+    ctx.fillRect(containerLeft + 2, pistonY - 10, containerWidth - 4, 14);
 
-    // Tay cầm pít-tông
-    ctx.fillStyle = '#888';
-    ctx.fillRect(containerLeft + containerWidth / 2 - 10, pistonY - 50, 20, 40);
-    ctx.beginPath();
-    ctx.arc(containerLeft + containerWidth / 2, pistonY - 50, 15, 0, Math.PI * 2);
-    ctx.fillStyle = '#ff6b6b';
-    ctx.fill();
+    // Khóa đẳng tích (vẽ chốt khóa)
+    if (lockMode === 'volume') {
+        ctx.fillStyle = '#ff4757';
+        ctx.fillRect(containerLeft - 15, pistonY - 12, 12, 18);
+        ctx.fillRect(containerLeft + containerWidth + 3, pistonY - 12, 12, 18);
+    } else {
+        // Tay cầm pít-tông
+        ctx.fillStyle = '#888';
+        ctx.fillRect(containerLeft + containerWidth / 2 - 8, pistonY - 50, 16, 40);
+        ctx.beginPath();
+        ctx.arc(containerLeft + containerWidth / 2, pistonY - 50, 14, 0, Math.PI * 2);
+        ctx.fillStyle = isDraggingPiston ? '#ff6b6b' : '#4dabf7';
+        ctx.fill();
+    }
 }
 
-function drawLửaLạnhEffect() {
+function drawHeatEffect() {
     if (leverVal > 0) {
-        // Vẽ hiệu ứng Lửa
         ctx.fillStyle = `rgba(255, 69, 0, ${leverVal * 0.7})`;
         ctx.beginPath();
         ctx.arc(containerLeft + containerWidth / 2, containerBottom + 20, 60 * leverVal, Math.PI, 0);
         ctx.fill();
     } else if (leverVal < 0) {
-        // Vẽ hiệu ứng Băng
         ctx.fillStyle = `rgba(77, 171, 247, ${Math.abs(leverVal) * 0.7})`;
         ctx.fillRect(containerLeft, containerBottom - 5, containerWidth, 15);
     }
@@ -381,10 +390,24 @@ function drawLửaLạnhEffect() {
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Biến đổi Nhiệt độ T
+    // Cập nhật Nhiệt độ T
     if (leverVal !== 0) {
         T += leverVal * 3;
-        if (T < 1) T = 1;
+        if (T < 5) T = 5;
+    }
+
+    // Xử lý Quá trình ĐẲNG ÁP (Tự điều chỉnh Thể tích/Pít-tông)
+    if (lockMode === 'pressure') {
+        // V tỉ lệ thuận với T -> Pít-tông dịch chuyển theo T
+        // V = (N * T) / (P * const)
+        const desiredHeight = (N * T) / (targetPressure * 7200);
+        let desiredPistonY = containerBottom - (desiredHeight * 240);
+
+        if (desiredPistonY < 80) desiredPistonY = 80;
+        if (desiredPistonY > 320) desiredPistonY = 320;
+
+        // Trôi mượt tới vị trí mới
+        pistonY += (desiredPistonY - pistonY) * 0.1;
     }
 
     const speedFactor = Math.sqrt(T) * 0.12;
@@ -397,21 +420,23 @@ function animate() {
     });
 
     drawContainer();
-    drawLửaLạnhEffect();
+    drawHeatEffect();
 
-    // Tính Toán Áp Suất P = (N * T) / Volume
-    const Volume = (containerBottom - pistonY) / 100; // Đơn vị thể tích quy đổi
-    const P = ((N * T) / (Volume * 1500)).toFixed(2);
+    // Tính Thể tích V và Áp suất P
+    const currentHeight = containerBottom - pistonY;
+    const V = (currentHeight / 240); // Chuẩn hóa V từ ~0.4 đến ~1.4 Lít
+    const P = ((N * T) / (V * 7200)).toFixed(2);
 
     // Cập nhật UI
     document.getElementById('tempReadout').textContent = Math.round(T);
-    document.getElementById('pressureReadout').textContent = P;
+    document.getElementById('volReadout').textContent = V.toFixed(2);
+    document.getElementById('pressureReadout').textContent = lockMode === 'pressure' ? targetPressure.toFixed(2) : P;
 
     requestAnimationFrame(animate);
 }
 
-// Khởi chạy
-setState('gas');
+// Khởi tạo
+initGas();
 animate();
 </script>
 
