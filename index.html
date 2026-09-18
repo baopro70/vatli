@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mô Phỏng Thí Nghiệm Khí Lý Tưởng</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 { color: #333; margin-bottom: 10px; }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            max-width: 1000px;
+            width: 100%;
+        }
+        canvas {
+            background: #ffffff;
+            border: 2px solid #333;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .controls {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            width: 320px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .control-group {
+            margin-bottom: 15px;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+        .readout {
+            font-family: monospace;
+            background: #eef2f5;
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Mô Phỏng Thí Nghiệm Khí Lý Tưởng</h1>
+
+<div class="container">
+    <canvas id="simCanvas" width="500" height="400"></canvas>
+    
+    <div class="controls">
+        <div class="control-group">
+            <label for="temp">Nhiệt độ (T): <span id="tempVal">300</span> K</label>
+            <input type="range" id="temp" min="100" max="600" value="300">
+        </div>
+        
+        <div class="control-group">
+            <label for="volume">Thể tích (V): <span id="volVal">1.0</span> L</label>
+            <input type="range" id="volume" min="0.5" max="2.0" step="0.1" value="1.0">
+        </div>
+
+        <div class="control-group">
+            <label for="particles">Số lượng hạt (N): <span id="partVal">50</span></label>
+            <input type="range" id="particles" min="10" max="150" value="50">
+        </div>
+
+        <div class="readout">
+            <strong>Áp suất tính toán (P):</strong> <span id="pressVal">--</span> atm
+        </div>
+    </div>
+</div>
+
+<script>
+const canvas = document.getElementById('simCanvas');
+const ctx = canvas.getContext('2d');
+
+// Lấy phần tử điều khiển
+const tempInput = document.getElementById('temp');
+const volInput = document.getElementById('volume');
+const partInput = document.getElementById('particles');
+
+const tempVal = document.getElementById('tempVal');
+const volVal = document.getElementById('volVal');
+const partVal = document.getElementById('partVal');
+const pressVal = document.getElementById('pressVal');
+
+// Cấu hình xilanh
+const containerX = 50;
+const containerY = 50;
+const containerWidth = 400;
+const maxContainerHeight = 300;
+
+let particles = [];
+
+class Particle {
+    constructor(x, y, speed) {
+        this.x = x;
+        this.y = y;
+        this.r = 5;
+        const angle = Math.random() * Math.PI * 2;
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+    }
+
+    update(minY, height, speedMultiplier) {
+        // Cập nhật vận tốc dựa trên nhiệt độ
+        const currentSpeed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+        if (currentSpeed > 0) {
+            this.vx = (this.vx / currentSpeed) * speedMultiplier;
+            this.vy = (this.vy / currentSpeed) * speedMultiplier;
+        }
+
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // Va chạm tường trái/phải
+        if (this.x - this.r < containerX) {
+            this.x = containerX + this.r;
+            this.vx *= -1;
+        } else if (this.x + this.r > containerX + containerWidth) {
+            this.x = containerX + containerWidth - this.r;
+            this.vx *= -1;
+        }
+
+        // Va chạm pittông (trên) và đáy (dưới)
+        if (this.y - this.r < minY) {
+            this.y = minY + this.r;
+            this.vy *= -1;
+        } else if (this.y + this.r > containerY + maxContainerHeight) {
+            this.y = containerY + maxContainerHeight - this.r;
+            this.vy *= -1;
+        }
+    }
+
+    draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+        ctx.fillStyle = "#e74c3c";
+        ctx.fill();
+        ctx.closePath();
+    }
+}
+
+function initParticles(num, minY, speedMultiplier) {
+    particles = [];
+    for (let i = 0; i < num; i++) {
+        const x = containerX + 10 + Math.random() * (containerWidth - 20);
+        const y = minY + 10 + Math.random() * (containerY + maxContainerHeight - minY - 20);
+        particles.push(new Particle(x, y, speedMultiplier));
+    }
+}
+
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const T = parseFloat(tempInput.value);
+    const V = parseFloat(volInput.value);
+    const N = parseInt(partInput.value);
+
+    // Tính vị trí Pittông dựa trên Thể tích V (V từ 0.5 đến 2.0)
+    const currentHeight = (V / 2.0) * maxContainerHeight;
+    const pistonY = containerY + (maxContainerHeight - currentHeight);
+
+    // Tốc độ hạt tỉ lệ với căn bậc hai của Nhiệt độ (T)
+    const speed = Math.sqrt(T) * 0.25;
+
+    // Cập nhật số lượng hạt nếu thay đổi
+    if (particles.length !== N) {
+        initParticles(N, pistonY, speed);
+    }
+
+    // Vẽ xilanh
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(containerX, containerY);
+    ctx.lineTo(containerX, containerY + maxContainerHeight);
+    ctx.lineTo(containerX + containerWidth, containerY + maxContainerHeight);
+    ctx.lineTo(containerX + containerWidth, containerY);
+    ctx.stroke();
+
+    // Vẽ Pittông
+    ctx.fillStyle = '#7f8c8d';
+    ctx.fillRect(containerX, pistonY - 10, containerWidth, 10);
+
+    // Cập nhật và vẽ hạt
+    particles.forEach(p => {
+        p.update(pistonY, currentHeight, speed);
+        p.draw();
+    });
+
+    // Tính áp suất P = (N * T) / V (hằng số điều chỉnh để hiển thị đẹp)
+    const P = ((N * T) / (V * 1000)).toFixed(2);
+
+    // Hiển thị UI
+    tempVal.textContent = T;
+    volVal.textContent = V.toFixed(1);
+    partVal.textContent = N;
+    pressVal.textContent = P;
+
+    requestAnimationFrame(animate);
+}
+
+// Khởi tạo ban đầu
+initParticles(parseInt(partInput.value), containerY + maxContainerHeight / 2, Math.sqrt(300) * 0.25);
+animate();
+</script>
+
+</body>
+      </html>
