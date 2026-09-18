@@ -2,78 +2,91 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mô Phỏng Khí Lý Tưởng</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Mô Phỏng Khí Lý Tưởng (Hỗ trợ Điện thoại)</title>
     <style>
-        * { box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; user-select: none; }
+        * { 
+            box-sizing: border-box; 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
         body {
             background-color: #121212;
             color: #ffffff;
             margin: 0;
-            padding: 15px;
+            padding: 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-        h1 { margin: 0 0 10px 0; font-size: 1.5em; color: #4dabf7; text-align: center; }
+        h1 { margin: 0 0 10px 0; font-size: 1.2em; color: #4dabf7; text-align: center; }
         .sim-container {
-            display: flex;
-            gap: 15px;
-            background: #1e1e1e;
-            padding: 15px;
-            border-radius: 12px;
-            border: 2px solid #333;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
-        }
-        canvas { background: #000000; border-radius: 8px; }
-        .panel {
-            width: 300px;
             display: flex;
             flex-direction: column;
             gap: 10px;
+            background: #1e1e1e;
+            padding: 10px;
+            border-radius: 12px;
+            border: 2px solid #333;
+            width: 100%;
+            max-width: 480px;
+        }
+        canvas { 
+            background: #000000; 
+            border-radius: 8px; 
+            width: 100%; 
+            height: auto;
+            touch-action: none; /* Tránh cuộn trang khi vuốt trên canvas */
+        }
+        .panel {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
         .box {
             background: #2a2a2a;
-            padding: 10px 12px;
+            padding: 8px 10px;
             border-radius: 8px;
             border: 1px solid #444;
         }
         .box-title {
             font-weight: bold;
-            font-size: 0.85em;
+            font-size: 0.8em;
             color: #ffd43b;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             border-bottom: 1px solid #444;
-            padding-bottom: 4px;
+            padding-bottom: 2px;
             text-transform: uppercase;
         }
-        .radio-group { display: flex; flex-direction: column; gap: 6px; font-size: 0.85em; }
-        .radio-group label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .radio-group { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.8em; }
+        .radio-group label { display: flex; align-items: center; gap: 4px; cursor: pointer; }
         
         .control-row {
             display: flex;
             flex-direction: column;
             gap: 4px;
-            margin-bottom: 8px;
-            font-size: 0.85em;
+            font-size: 0.8em;
         }
-        input[type="range"].h-slider { width: 100%; cursor: pointer; }
+        input[type="range"].h-slider { width: 100%; cursor: pointer; height: 25px; }
 
         .heater-control {
             display: flex;
             align-items: center;
             justify-content: space-between;
             background: #1a1a1a;
-            padding: 8px 12px;
+            padding: 6px 12px;
             border-radius: 6px;
         }
-        .slider-axis { display: flex; flex-direction: column; align-items: center; height: 80px; }
+        .slider-axis { display: flex; flex-direction: column; align-items: center; height: 70px; }
         input[type="range"].v-slider {
             writing-mode: bt-lr;
             -webkit-appearance: slider-vertical;
-            width: 14px; height: 70px; cursor: pointer;
+            width: 24px; height: 60px; cursor: pointer;
         }
-        .labels { display: flex; flex-direction: column; justify-content: space-between; height: 70px; font-size: 0.75em; font-weight: bold; }
+        .labels { display: flex; flex-direction: column; justify-content: space-between; height: 60px; font-size: 0.75em; font-weight: bold; }
         .gauge-val {
             font-family: monospace; font-size: 1.1em; color: #51cf66;
             text-align: center; background: #111; padding: 4px; border-radius: 4px; border: 1px solid #333;
@@ -81,45 +94,43 @@
         .hint { font-size: 0.75em; color: #aaa; margin-top: 4px; font-style: italic; }
         .pump-btn {
             background: #ff922b; color: #000; font-weight: bold; border: none;
-            padding: 8px; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 4px;
+            padding: 10px; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 4px;
+            font-size: 0.9em;
         }
-        .pump-btn:hover { background: #ffa8a8; }
+        .pump-btn:active { background: #ffa8a8; }
     </style>
 </head>
 <body>
 
-<h1>Mô Phỏng Khí Lý Tưởng (Ống Bơm & Điều Chỉnh Áp Suất)</h1>
+<h1>Mô Phỏng Khí Lý Tưởng</h1>
 
 <div class="sim-container">
-    <canvas id="phetCanvas" width="480" height="460"></canvas>
+    <canvas id="phetCanvas" width="480" height="420"></canvas>
 
     <div class="panel">
-        <!-- 1. Đẳng quá trình -->
         <div class="box" style="border: 1px solid #4dabf7;">
-            <div class="box-title">Khóa Đại Lượng (Đẳng Quá Trình)</div>
+            <div class="box-title">Đẳng Quá Trình</div>
             <div class="radio-group">
-                <label><input type="radio" name="keepConst" value="none" checked onchange="setProcess('none')"> Tự do (Kéo pít-tông tùy ý)</label>
-                <label><input type="radio" name="keepConst" value="temp" onchange="setProcess('temp')"> 🔒 <b>Đẳng nhiệt</b> (T = const)</label>
-                <label><input type="radio" name="keepConst" value="volume" onchange="setProcess('volume')"> 🔒 <b>Đẳng tích</b> (V = const)</label>
-                <label><input type="radio" name="keepConst" value="pressure" onchange="setProcess('pressure')"> 🔒 <b>Đẳng áp</b> (P = const)</label>
+                <label><input type="radio" name="keepConst" value="none" checked onchange="setProcess('none')"> Tự do</label>
+                <label><input type="radio" name="keepConst" value="temp" onchange="setProcess('temp')"> 🔒 Đẳng nhiệt</label>
+                <label><input type="radio" name="keepConst" value="volume" onchange="setProcess('volume')"> 🔒 Đẳng tích</label>
+                <label><input type="radio" name="keepConst" value="pressure" onchange="setProcess('pressure')"> 🔒 Đẳng áp</label>
             </div>
-            <div class="hint" id="processHint">Kéo ống bơm để thêm hạt khí vào bình.</div>
+            <div class="hint" id="processHint">Vuốt pít-tông trên màn hình để di chuyển.</div>
         </div>
 
-        <!-- 2. Bơm hạt & Thay đổi Áp suất -->
         <div class="box">
             <div class="box-title">Tác Động Áp Suất & Số Hạt</div>
             <div class="control-row">
                 <label>Số lượng hạt (N): <b id="particleCountText" style="color: #51cf66;">50</b></label>
-                <button class="pump-btn" onclick="pumpParticles(10)">💨 Nhấn Bơm +10 Hạt Khí</button>
+                <button class="pump-btn" onclick="pumpParticles(10)">💨 Bơm +10 Hạt Khí</button>
             </div>
-            <div class="control-row" style="margin-top: 8px;">
-                <label>Điều chỉnh Áp suất P mong muốn (atm):</label>
+            <div class="control-row" style="margin-top: 6px;">
+                <label>Chỉnh Áp suất P (atm):</label>
                 <input type="range" id="pressureSlider" class="h-slider" min="0.2" max="3.0" step="0.05" value="1.0" oninput="manualAdjustPressure(this.value)">
             </div>
         </div>
 
-        <!-- 3. Nhiệt độ -->
         <div class="box">
             <div class="box-title">Truyền Nhiệt (Nóng / Lạnh)</div>
             <div class="heater-control">
@@ -135,7 +146,6 @@
             </div>
         </div>
 
-        <!-- 4. Thông số -->
         <div class="box">
             <div class="box-title">Đồng Hồ Đo PhET</div>
             <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 0.85em;">
@@ -159,14 +169,12 @@ let lockMode = 'none';
 let particles = [];
 let leverVal = 0;
 
-// Bình chứa
-const containerLeft = 100;
-const containerWidth = 320;
-const containerBottom = 420;
-let pistonY = 180;
+const containerLeft = 90;
+const containerWidth = 310;
+const containerBottom = 390;
+let pistonY = 160;
 let isDraggingPiston = false;
 
-// Cần bơm (Pump handle animation)
 let pumpOffsetY = 0;
 
 class IdealGasParticle {
@@ -198,7 +206,7 @@ class IdealGasParticle {
 }
 
 function pumpParticles(count) {
-    pumpOffsetY = 25;
+    pumpOffsetY = 20;
     setTimeout(() => pumpOffsetY = 0, 150);
 
     for (let i = 0; i < count; i++) {
@@ -215,19 +223,19 @@ function setProcess(mode) {
     const tempLever = document.getElementById('tempLever');
 
     if (mode === 'temp') {
-        hint.innerHTML = '🔒 <b>Đẳng nhiệt:</b> T cố định. Kéo Pít-tông hoặc thanh Áp suất để đổi V.';
+        hint.innerHTML = '🔒 <b>Đẳng nhiệt:</b> T cố định. Vuốt pít-tông để thay đổi V.';
         tempLever.disabled = true;
     } else if (mode === 'volume') {
-        hint.innerHTML = '🔒 <b>Đẳng tích:</b> V cố định. Thay đổi T hoặc số hạt để đổi P.';
+        hint.innerHTML = '🔒 <b>Đẳng tích:</b> V cố định. Thay đổi T hoặc số hạt.';
         tempLever.disabled = false;
     } else if (mode === 'pressure') {
-        hint.innerHTML = '🔒 <b>Đẳng áp:</b> P cố định. Thể tích tự động đổi khi tăng/giảm Nhiệt độ T.';
+        hint.innerHTML = '🔒 <b>Đẳng áp:</b> P cố định. V tự động đổi khi đổi T.';
         tempLever.disabled = false;
         const currentV = (containerBottom - pistonY) / 240;
         targetPressure = (particles.length * T) / (currentV * 12000);
         document.getElementById('pressureSlider').value = targetPressure.toFixed(2);
     } else {
-        hint.innerHTML = 'Bơm thêm hạt khí hoặc kéo pít-tông tùy ý.';
+        hint.innerHTML = 'Vuốt pít-tông trên màn hình để di chuyển.';
         tempLever.disabled = false;
     }
 }
@@ -244,34 +252,55 @@ function manualAdjustPressure(val) {
     } else {
         const desiredV = (N * T) / (targetPressure * 12000);
         let desiredPistonY = containerBottom - (desiredV * 240);
-        if (desiredPistonY < 80) desiredPistonY = 80;
-        if (desiredPistonY > 340) desiredPistonY = 340;
+        if (desiredPistonY < 70) desiredPistonY = 70;
+        if (desiredPistonY > 310) desiredPistonY = 310;
         pistonY = desiredPistonY;
     }
 }
 
-canvas.addEventListener('mousedown', (e) => {
-    if (lockMode === 'volume') return;
+// Xử lý tọa độ chạm cảm ứng & chuột chuẩn xác trên di động
+function getCanvasPos(e) {
     const rect = canvas.getBoundingClientRect();
-    const mouseY = e.clientY - rect.top;
-    const mouseX = e.clientX - rect.left;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+        x: (clientX - rect.left) * (canvas.width / rect.width),
+        y: (clientY - rect.top) * (canvas.height / rect.height)
+    };
+}
 
-    if (mouseX >= containerLeft && mouseX <= containerLeft + containerWidth && Math.abs(mouseY - pistonY) < 25) {
+function handleStart(e) {
+    if (lockMode === 'volume') return;
+    const pos = getCanvasPos(e);
+    if (pos.x >= containerLeft && pos.x <= containerLeft + containerWidth && Math.abs(pos.y - pistonY) < 35) {
         isDraggingPiston = true;
+        if (e.cancelable) e.preventDefault();
     }
-});
+}
 
-canvas.addEventListener('mousemove', (e) => {
+function handleMove(e) {
     if (isDraggingPiston) {
-        const rect = canvas.getBoundingClientRect();
-        let mouseY = e.clientY - rect.top;
-        if (mouseY < 80) mouseY = 80;
-        if (mouseY > 340) mouseY = 340;
+        const pos = getCanvasPos(e);
+        let mouseY = pos.y;
+        if (mouseY < 70) mouseY = 70;
+        if (mouseY > 310) mouseY = 310;
         pistonY = mouseY;
+        if (e.cancelable) e.preventDefault();
     }
-});
+}
 
-window.addEventListener('mouseup', () => isDraggingPiston = false);
+function handleEnd() {
+    isDraggingPiston = false;
+}
+
+// Gắn sự kiện cả Chuột lẫn Cảm ứng
+canvas.addEventListener('mousedown', handleStart);
+canvas.addEventListener('mousemove', handleMove);
+window.addEventListener('mouseup', handleEnd);
+
+canvas.addEventListener('touchstart', handleStart, { passive: false });
+canvas.addEventListener('touchmove', handleMove, { passive: false });
+window.addEventListener('touchend', handleEnd);
 
 function adjustTemp(v) {
     if (lockMode === 'temp') return;
@@ -292,10 +321,10 @@ function drawContainerAndPump() {
     ctx.strokeStyle = '#4dabf7';
     ctx.lineWidth = 4;
     ctx.beginPath();
-    ctx.moveTo(containerLeft, 60);
+    ctx.moveTo(containerLeft, 50);
     ctx.lineTo(containerLeft, containerBottom);
     ctx.lineTo(containerLeft + containerWidth, containerBottom);
-    ctx.lineTo(containerLeft + containerWidth, 60);
+    ctx.lineTo(containerLeft + containerWidth, 50);
     ctx.stroke();
 
     ctx.fillStyle = (lockMode === 'volume') ? '#555' : (isDraggingPiston ? '#ff6b6b' : '#ffffd1');
@@ -307,26 +336,26 @@ function drawContainerAndPump() {
         ctx.fillRect(containerLeft + containerWidth + 3, pistonY - 12, 12, 18);
     } else {
         ctx.fillStyle = '#888';
-        ctx.fillRect(containerLeft + containerWidth / 2 - 8, pistonY - 50, 16, 40);
+        ctx.fillRect(containerLeft + containerWidth / 2 - 8, pistonY - 45, 16, 35);
         ctx.beginPath();
-        ctx.arc(containerLeft + containerWidth / 2, pistonY - 50, 14, 0, Math.PI * 2);
+        ctx.arc(containerLeft + containerWidth / 2, pistonY - 45, 16, 0, Math.PI * 2);
         ctx.fillStyle = isDraggingPiston ? '#ff6b6b' : '#4dabf7';
         ctx.fill();
     }
 
-    const pumpX = 35;
-    const pumpY = 280 + pumpOffsetY;
+    const pumpX = 30;
+    const pumpY = 250 + pumpOffsetY;
     
     ctx.fillStyle = '#ff922b';
-    ctx.fillRect(pumpX - 12, pumpY, 24, 90);
+    ctx.fillRect(pumpX - 10, pumpY, 20, 80);
     ctx.strokeStyle = '#aaa';
-    ctx.lineWidth = 6;
+    ctx.lineWidth = 5;
     ctx.beginPath();
-    ctx.moveTo(pumpX, pumpY + 60);
+    ctx.moveTo(pumpX, pumpY + 50);
     ctx.lineTo(containerLeft, containerBottom - 40);
     ctx.stroke();
     ctx.fillStyle = '#e03131';
-    ctx.fillRect(pumpX - 25, pumpY - 15, 50, 15);
+    ctx.fillRect(pumpX - 20, pumpY - 12, 40, 12);
 }
 
 function drawHeatEffect() {
@@ -354,8 +383,8 @@ function animate() {
     if (lockMode === 'pressure' && N > 0) {
         const desiredV = (N * T) / (targetPressure * 12000);
         let desiredPistonY = containerBottom - (desiredV * 240);
-        if (desiredPistonY < 80) desiredPistonY = 80;
-        if (desiredPistonY > 340) desiredPistonY = 340;
+        if (desiredPistonY < 70) desiredPistonY = 70;
+        if (desiredPistonY > 310) desiredPistonY = 310;
         pistonY += (desiredPistonY - pistonY) * 0.1;
     }
 
