@@ -1,422 +1,61 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Mô Phỏng Khí Lý Tưởng (Hỗ trợ Điện thoại)</title>
-    <style>
-        * { 
-            box-sizing: border-box; 
-            font-family: 'Segoe UI', Arial, sans-serif; 
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: manipulation;
-        }
-        body {
-            background-color: #121212;
-            color: #ffffff;
-            margin: 0;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        h1 { margin: 0 0 10px 0; font-size: 1.2em; color: #4dabf7; text-align: center; }
-        .sim-container {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            background: #1e1e1e;
-            padding: 10px;
-            border-radius: 12px;
-            border: 2px solid #333;
-            width: 100%;
-            max-width: 480px;
-        }
-        canvas { 
-            background: #000000; 
-            border-radius: 8px; 
-            width: 100%; 
-            height: auto;
-            touch-action: none; /* Tránh cuộn trang khi vuốt trên canvas */
-        }
-        .panel {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .box {
-            background: #2a2a2a;
-            padding: 8px 10px;
-            border-radius: 8px;
-            border: 1px solid #444;
-        }
-        .box-title {
-            font-weight: bold;
-            font-size: 0.8em;
-            color: #ffd43b;
-            margin-bottom: 4px;
-            border-bottom: 1px solid #444;
-            padding-bottom: 2px;
-            text-transform: uppercase;
-        }
-        .radio-group { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.8em; }
-        .radio-group label { display: flex; align-items: center; gap: 4px; cursor: pointer; }
-        
-        .control-row {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            font-size: 0.8em;
-        }
-        input[type="range"].h-slider { width: 100%; cursor: pointer; height: 25px; }
-
-        .heater-control {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #1a1a1a;
-            padding: 6px 12px;
-            border-radius: 6px;
-        }
-        .slider-axis { display: flex; flex-direction: column; align-items: center; height: 70px; }
-        input[type="range"].v-slider {
-            writing-mode: bt-lr;
-            -webkit-appearance: slider-vertical;
-            width: 24px; height: 60px; cursor: pointer;
-        }
-        .labels { display: flex; flex-direction: column; justify-content: space-between; height: 60px; font-size: 0.75em; font-weight: bold; }
-        .gauge-val {
-            font-family: monospace; font-size: 1.1em; color: #51cf66;
-            text-align: center; background: #111; padding: 4px; border-radius: 4px; border: 1px solid #333;
-        }
-        .hint { font-size: 0.75em; color: #aaa; margin-top: 4px; font-style: italic; }
-        .pump-btn {
-            background: #ff922b; color: #000; font-weight: bold; border: none;
-            padding: 10px; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 4px;
-            font-size: 0.9em;
-        }
-        .pump-btn:active { background: #ffa8a8; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Phòng thí nghiệm khí lý tưởng</title>
+<style>
+:root{--bg:#dfe5e8;--ink:#263238;--steel:#607078;--steel-dark:#37474f;--blue:#1686b8;--red:#d64b3f;--glass:rgba(151,215,235,.18);--line:#263238}
+*{box-sizing:border-box;font-family:Arial,sans-serif;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+body{margin:0;padding:16px;background:radial-gradient(circle at 50% 0,#f7fafb,#c7d0d4);color:var(--ink)}
+h1{margin:0 0 12px;text-align:center;font-size:clamp(1.15rem,4vw,1.55rem);letter-spacing:.04em;color:#263238;text-transform:uppercase}
+.subtitle{text-align:center;margin:-6px 0 12px;color:#607078;font-size:.78rem}
+.sim-container{max-width:620px;margin:auto;background:#eceff1;border:1px solid #aeb9bd;border-radius:8px;padding:12px;box-shadow:0 12px 28px #60707855}
+canvas{display:block;width:100%;height:auto;background:linear-gradient(#f7fbfc,#d9e2e5);border:1px solid #89979c;border-radius:4px;touch-action:none;box-shadow:inset 0 1px 4px #0003}
+.panel{display:flex;flex-direction:column;gap:9px;margin-top:10px}.box{background:#f8fafb;border:1px solid #b5c0c4;border-radius:5px;padding:9px;box-shadow:0 2px 4px #60707822}.box-title{font-size:.72rem;font-weight:bold;letter-spacing:.08em;text-transform:uppercase;color:#455a64;border-bottom:1px solid #c8d0d3;padding-bottom:5px;margin-bottom:8px}.radio-group{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;font-size:.82rem}.radio-group label{padding:7px;border:1px solid #ccd5d8;border-radius:3px;background:#fff;cursor:pointer}.radio-group label:has(input:checked){border-color:var(--blue);background:#e4f3f8}.control-row{display:flex;flex-direction:column;gap:5px;font-size:.82rem}input[type=range]{width:100%;accent-color:var(--blue);cursor:pointer}.instrument-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}.instrument{background:#263238;color:#e7f4f7;border-radius:4px;padding:7px;text-align:center;border:2px solid #78909c;box-shadow:inset 0 0 0 2px #172126}.instrument small{display:block;color:#b0bec5;font-size:.65rem;text-transform:uppercase}.instrument strong{display:block;font:1.1rem monospace;color:#b9f6ca;margin-top:3px}.heater-control{display:flex;align-items:center;gap:10px;background:#e5eaec;border:1px solid #b4c0c4;border-radius:4px;padding:7px}.labels{display:flex;flex-direction:column;justify-content:space-between;height:60px;font-size:.72rem;font-weight:bold}.slider-axis{display:flex;justify-content:center;flex:1}.v-slider{writing-mode:bt-lr;-webkit-appearance:slider-vertical;appearance:slider-vertical;width:28px;height:65px}.heat-status{font-size:1.45rem;width:32px;text-align:center}.pump-btn{width:100%;padding:10px;border:1px solid #a63a31;border-radius:4px;background:linear-gradient(#e86658,#bd382e);color:white;font-weight:bold;cursor:pointer;box-shadow:0 2px 0 #81251f}.pump-btn:active{transform:translateY(1px);box-shadow:none}.hint{font-size:.72rem;color:#607078;font-style:italic;margin-top:6px}.legend{font-size:.68rem;color:#607078;text-align:center;margin-top:7px}
+</style>
 </head>
 <body>
-
-<h1>Mô Phỏng Khí Lý Tưởng</h1>
-
+<h1>Phòng thí nghiệm khí lý tưởng</h1><div class="subtitle">Mô hình xi-lanh – pít-tông có thể thao tác trực tiếp</div>
 <div class="sim-container">
-    <canvas id="phetCanvas" width="480" height="420"></canvas>
-
-    <div class="panel">
-        <div class="box" style="border: 1px solid #4dabf7;">
-            <div class="box-title">Đẳng Quá Trình</div>
-            <div class="radio-group">
-                <label><input type="radio" name="keepConst" value="none" checked onchange="setProcess('none')"> Tự do</label>
-                <label><input type="radio" name="keepConst" value="temp" onchange="setProcess('temp')"> 🔒 Đẳng nhiệt</label>
-                <label><input type="radio" name="keepConst" value="volume" onchange="setProcess('volume')"> 🔒 Đẳng tích</label>
-                <label><input type="radio" name="keepConst" value="pressure" onchange="setProcess('pressure')"> 🔒 Đẳng áp</label>
-            </div>
-            <div class="hint" id="processHint">Vuốt pít-tông trên màn hình để di chuyển.</div>
-        </div>
-
-        <div class="box">
-            <div class="box-title">Tác Động Áp Suất & Số Hạt</div>
-            <div class="control-row">
-                <label>Số lượng hạt (N): <b id="particleCountText" style="color: #51cf66;">50</b></label>
-                <button class="pump-btn" onclick="pumpParticles(10)">💨 Bơm +10 Hạt Khí</button>
-            </div>
-            <div class="control-row" style="margin-top: 6px;">
-                <label>Chỉnh Áp suất P (atm):</label>
-                <input type="range" id="pressureSlider" class="h-slider" min="0.2" max="3.0" step="0.05" value="1.0" oninput="manualAdjustPressure(this.value)">
-            </div>
-        </div>
-
-        <div class="box">
-            <div class="box-title">Truyền Nhiệt (Nóng / Lạnh)</div>
-            <div class="heater-control">
-                <div class="labels">
-                    <span style="color: #ff6b6b;">🔥 NÓNG</span>
-                    <span style="color: #888;">⚪ GIỮ</span>
-                    <span style="color: #4dabf7;">❄️ LẠNH</span>
-                </div>
-                <div class="slider-axis">
-                    <input type="range" id="tempLever" class="v-slider" min="-1" max="1" step="0.05" value="0" oninput="adjustTemp(this.value)" onmouseup="resetLever()" ontouchend="resetLever()">
-                </div>
-                <div style="font-size: 1.5em;" id="heatIcon">🛑</div>
-            </div>
-        </div>
-
-        <div class="box">
-            <div class="box-title">Đồng Hồ Đo PhET</div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 0.85em;">
-                <span>Nhiệt độ (T): <b id="tempReadout" style="color: #ffd43b;">300</b> K</span>
-                <span>Thể tích (V): <b id="volReadout" style="color: #4dabf7;">1.00</b> L</span>
-            </div>
-            <div>Áp suất khí (P):</div>
-            <div class="gauge-val"><span id="pressureReadout">1.00</span> atm</div>
-        </div>
-    </div>
+<canvas id="phetCanvas" width="560" height="430"></canvas>
+<div class="panel">
+<div class="box"><div class="box-title">Điều kiện thí nghiệm</div><div class="radio-group">
+<label><input type="radio" name="keepConst" checked onchange="setProcess('none')"> Tự do</label><label><input type="radio" name="keepConst" onchange="setProcess('temp')"> Đẳng nhiệt</label><label><input type="radio" name="keepConst" onchange="setProcess('volume')"> Đẳng tích</label><label><input type="radio" name="keepConst" onchange="setProcess('pressure')"> Đẳng áp</label></div><div class="hint" id="processHint">Kéo tay nắm kim loại để thay đổi thể tích.</div></div>
+<div class="box"><div class="box-title">Nạp khí và tải trọng</div><div class="control-row"><label>Số hạt khí: <b id="particleCountText">50</b></label><button class="pump-btn" onclick="pumpParticles(10)">Mở van nạp khí &nbsp; +10 hạt</button></div><div class="control-row" style="margin-top:8px"><label>Áp suất đặt (van điều chỉnh): <b id="pressureSet">1.00</b> atm</label><input type="range" id="pressureSlider" min="0.2" max="3" step=".05" value="1" oninput="manualAdjustPressure(this.value)"></div></div>
+<div class="box"><div class="box-title">Bộ gia nhiệt / làm lạnh</div><div class="heater-control"><div class="labels"><span style="color:#b7352d">NÓNG</span><span style="color:#607078">GIỮ</span><span style="color:#16749e">LẠNH</span></div><div class="slider-axis"><input id="tempLever" class="v-slider" type="range" min="-1" max="1" step=".05" value="0" oninput="adjustTemp(this.value)" onmouseup="resetLever()" ontouchend="resetLever()"></div><div id="heatIcon" class="heat-status">○</div></div></div>
+<div class="box"><div class="box-title">Bảng đồng hồ đo</div><div class="instrument-row"><div class="instrument"><small>Nhiệt độ</small><strong><span id="tempReadout">300</span> K</strong></div><div class="instrument"><small>Thể tích</small><strong><span id="volReadout">1.00</span> L</strong></div><div class="instrument"><small>Áp suất</small><strong><span id="pressureReadout">1.00</span> atm</strong></div></div></div>
+</div><div class="legend">Kéo pít-tông • Kim đồng hồ và hạt khí thay đổi theo trạng thái</div>
 </div>
-
 <script>
-const canvas = document.getElementById('phetCanvas');
-const ctx = canvas.getContext('2d');
-
-let T = 300;
-let targetPressure = 1.0;
-let lockMode = 'none';
-
-let particles = [];
-let leverVal = 0;
-
-const containerLeft = 90;
-const containerWidth = 310;
-const containerBottom = 390;
-let pistonY = 160;
-let isDraggingPiston = false;
-
-let pumpOffsetY = 0;
-
-class IdealGasParticle {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        const angle = Math.random() * Math.PI * 2;
-        this.vx = Math.cos(angle);
-        this.vy = Math.sin(angle);
-        this.r = 3;
-    }
-
-    update(bounds, speedFactor) {
-        this.x += this.vx * speedFactor;
-        this.y += this.vy * speedFactor;
-
-        if (this.x - this.r < bounds.left) { this.x = bounds.left + this.r; this.vx *= -1; }
-        if (this.x + this.r > bounds.right) { this.x = bounds.right - this.r; this.vx *= -1; }
-        if (this.y - this.r < bounds.top) { this.y = bounds.top + this.r; this.vy *= -1; }
-        if (this.y + this.r > bounds.bottom) { this.y = bounds.bottom - this.r; this.vy *= -1; }
-    }
-
-    draw() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-        ctx.fillStyle = '#51cf66';
-        ctx.fill();
-    }
-}
-
-function pumpParticles(count) {
-    pumpOffsetY = 20;
-    setTimeout(() => pumpOffsetY = 0, 150);
-
-    for (let i = 0; i < count; i++) {
-        const x = containerLeft + 15 + Math.random() * (containerWidth - 30);
-        const y = pistonY + 15 + Math.random() * (containerBottom - pistonY - 30);
-        particles.push(new IdealGasParticle(x, y));
-    }
-    document.getElementById('particleCountText').textContent = particles.length;
-}
-
-function setProcess(mode) {
-    lockMode = mode;
-    const hint = document.getElementById('processHint');
-    const tempLever = document.getElementById('tempLever');
-
-    if (mode === 'temp') {
-        hint.innerHTML = '🔒 <b>Đẳng nhiệt:</b> T cố định. Vuốt pít-tông để thay đổi V.';
-        tempLever.disabled = true;
-    } else if (mode === 'volume') {
-        hint.innerHTML = '🔒 <b>Đẳng tích:</b> V cố định. Thay đổi T hoặc số hạt.';
-        tempLever.disabled = false;
-    } else if (mode === 'pressure') {
-        hint.innerHTML = '🔒 <b>Đẳng áp:</b> P cố định. V tự động đổi khi đổi T.';
-        tempLever.disabled = false;
-        const currentV = (containerBottom - pistonY) / 240;
-        targetPressure = (particles.length * T) / (currentV * 12000);
-        document.getElementById('pressureSlider').value = targetPressure.toFixed(2);
-    } else {
-        hint.innerHTML = 'Vuốt pít-tông trên màn hình để di chuyển.';
-        tempLever.disabled = false;
-    }
-}
-
-function manualAdjustPressure(val) {
-    targetPressure = parseFloat(val);
-    const N = particles.length;
-    if (N === 0) return;
-
-    if (lockMode === 'volume') {
-        const V = (containerBottom - pistonY) / 240;
-        T = (targetPressure * V * 12000) / N;
-        if (T < 10) T = 10;
-    } else {
-        const desiredV = (N * T) / (targetPressure * 12000);
-        let desiredPistonY = containerBottom - (desiredV * 240);
-        if (desiredPistonY < 70) desiredPistonY = 70;
-        if (desiredPistonY > 310) desiredPistonY = 310;
-        pistonY = desiredPistonY;
-    }
-}
-
-// Xử lý tọa độ chạm cảm ứng & chuột chuẩn xác trên di động
-function getCanvasPos(e) {
-    const rect = canvas.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    return {
-        x: (clientX - rect.left) * (canvas.width / rect.width),
-        y: (clientY - rect.top) * (canvas.height / rect.height)
-    };
-}
-
-function handleStart(e) {
-    if (lockMode === 'volume') return;
-    const pos = getCanvasPos(e);
-    if (pos.x >= containerLeft && pos.x <= containerLeft + containerWidth && Math.abs(pos.y - pistonY) < 35) {
-        isDraggingPiston = true;
-        if (e.cancelable) e.preventDefault();
-    }
-}
-
-function handleMove(e) {
-    if (isDraggingPiston) {
-        const pos = getCanvasPos(e);
-        let mouseY = pos.y;
-        if (mouseY < 70) mouseY = 70;
-        if (mouseY > 310) mouseY = 310;
-        pistonY = mouseY;
-        if (e.cancelable) e.preventDefault();
-    }
-}
-
-function handleEnd() {
-    isDraggingPiston = false;
-}
-
-// Gắn sự kiện cả Chuột lẫn Cảm ứng
-canvas.addEventListener('mousedown', handleStart);
-canvas.addEventListener('mousemove', handleMove);
-window.addEventListener('mouseup', handleEnd);
-
-canvas.addEventListener('touchstart', handleStart, { passive: false });
-canvas.addEventListener('touchmove', handleMove, { passive: false });
-window.addEventListener('touchend', handleEnd);
-
-function adjustTemp(v) {
-    if (lockMode === 'temp') return;
-    leverVal = parseFloat(v);
-    const icon = document.getElementById('heatIcon');
-    if (leverVal > 0) icon.textContent = '🔥';
-    else if (leverVal < 0) icon.textContent = '❄️';
-    else icon.textContent = '🛑';
-}
-
-function resetLever() {
-    leverVal = 0;
-    document.getElementById('tempLever').value = 0;
-    document.getElementById('heatIcon').textContent = '🛑';
-}
-
-function drawContainerAndPump() {
-    ctx.strokeStyle = '#4dabf7';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(containerLeft, 50);
-    ctx.lineTo(containerLeft, containerBottom);
-    ctx.lineTo(containerLeft + containerWidth, containerBottom);
-    ctx.lineTo(containerLeft + containerWidth, 50);
-    ctx.stroke();
-
-    ctx.fillStyle = (lockMode === 'volume') ? '#555' : (isDraggingPiston ? '#ff6b6b' : '#ffffd1');
-    ctx.fillRect(containerLeft + 2, pistonY - 10, containerWidth - 4, 14);
-
-    if (lockMode === 'volume') {
-        ctx.fillStyle = '#ff4757';
-        ctx.fillRect(containerLeft - 15, pistonY - 12, 12, 18);
-        ctx.fillRect(containerLeft + containerWidth + 3, pistonY - 12, 12, 18);
-    } else {
-        ctx.fillStyle = '#888';
-        ctx.fillRect(containerLeft + containerWidth / 2 - 8, pistonY - 45, 16, 35);
-        ctx.beginPath();
-        ctx.arc(containerLeft + containerWidth / 2, pistonY - 45, 16, 0, Math.PI * 2);
-        ctx.fillStyle = isDraggingPiston ? '#ff6b6b' : '#4dabf7';
-        ctx.fill();
-    }
-
-    const pumpX = 30;
-    const pumpY = 250 + pumpOffsetY;
-    
-    ctx.fillStyle = '#ff922b';
-    ctx.fillRect(pumpX - 10, pumpY, 20, 80);
-    ctx.strokeStyle = '#aaa';
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.moveTo(pumpX, pumpY + 50);
-    ctx.lineTo(containerLeft, containerBottom - 40);
-    ctx.stroke();
-    ctx.fillStyle = '#e03131';
-    ctx.fillRect(pumpX - 20, pumpY - 12, 40, 12);
-}
-
-function drawHeatEffect() {
-    if (leverVal > 0) {
-        ctx.fillStyle = `rgba(255, 69, 0, ${leverVal * 0.7})`;
-        ctx.beginPath();
-        ctx.arc(containerLeft + containerWidth / 2, containerBottom + 20, 60 * leverVal, Math.PI, 0);
-        ctx.fill();
-    } else if (leverVal < 0) {
-        ctx.fillStyle = `rgba(77, 171, 247, ${Math.abs(leverVal) * 0.7})`;
-        ctx.fillRect(containerLeft, containerBottom - 5, containerWidth, 15);
-    }
-}
-
-function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    if (leverVal !== 0 && lockMode !== 'temp') {
-        T += leverVal * 3;
-        if (T < 10) T = 10;
-    }
-
-    const N = particles.length;
-
-    if (lockMode === 'pressure' && N > 0) {
-        const desiredV = (N * T) / (targetPressure * 12000);
-        let desiredPistonY = containerBottom - (desiredV * 240);
-        if (desiredPistonY < 70) desiredPistonY = 70;
-        if (desiredPistonY > 310) desiredPistonY = 310;
-        pistonY += (desiredPistonY - pistonY) * 0.1;
-    }
-
-    const speedFactor = Math.sqrt(T) * 0.15;
-    const bounds = { left: containerLeft + 4, right: containerLeft + containerWidth - 4, top: pistonY + 8, bottom: containerBottom - 4 };
-
-    particles.forEach(p => {
-        p.update(bounds, speedFactor);
-        p.draw();
-    });
-
-    drawContainerAndPump();
-    drawHeatEffect();
-
-    const currentHeight = containerBottom - pistonY;
-    const V = (currentHeight / 240);
-    const P = N > 0 ? ((N * T) / (V * 12000)).toFixed(2) : "0.00";
-
-    document.getElementById('tempReadout').textContent = Math.round(T);
-    document.getElementById('volReadout').textContent = V.toFixed(2);
-    document.getElementById('pressureReadout').textContent = lockMode === 'pressure' ? targetPressure.toFixed(2) : P;
-
-    if (lockMode !== 'pressure') {
-        document.getElementById('pressureSlider').value = P;
-    }
-
-    requestAnimationFrame(animate);
-}
-
-pumpParticles(50);
-animate();
-</script>
-
-</body>
-</html>
+const canvas=document.getElementById('phetCanvas'),ctx=canvas.getContext('2d');let T=300,targetPressure=1,lockMode='none',particles=[],leverVal=0,pistonY=165,isDraggingPiston=false,pumpOffsetY=0;
+const containerLeft=175,containerWidth=235,containerBottom=365,topLimit=78,bottomLimit=300;
+class IdealGasParticle{constructor(x,y){this.x=x;this.y=y;const a=Math.random()*Math.PI*2;this.vx=Math.cos(a);this.vy=Math.sin(a);this.r=3}update(b,s){this.x+=this.vx*s;this.y+=this.vy*s;if(this.x-this.r<b.left){this.x=b.left+this.r;this.vx=Math.abs(this.vx)}if(this.x+this.r>b.right){this.x=b.right-this.r;this.vx=-Math.abs(this.vx)}if(this.y-this.r<b.top){this.y=b.top+this.r;this.vy=Math.abs(this.vy)}if(this.y+this.r>b.bottom){this.y=b.bottom-this.r;this.vy=-Math.abs(this.vy)}}draw(){ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.fillStyle='#37a85d';ctx.fill();ctx.strokeStyle='#176b3b';ctx.stroke()}}
+function pumpParticles(n){pumpOffsetY=14;setTimeout(()=>pumpOffsetY=0,140);for(let i=0;i<n;i++)particles.push(new IdealGasParticle(containerLeft+12+Math.random()*(containerWidth-24),pistonY+16+Math.random()*Math.max(15,containerBottom-pistonY-30)));document.getElementById('particleCountText').textContent=particles.length}
+function setProcess(m){lockMode=m;const h=document.getElementById('processHint'),lever=document.getElementById('tempLever');if(m==='temp'){h.innerHTML='Pít-tông di chuyển, nhiệt độ được giữ cố định.';lever.disabled=true}else if(m==='volume'){h.innerHTML='Pít-tông được khóa bằng chốt; chỉ thay đổi nhiệt độ hoặc số hạt.';lever.disabled=false}else if(m==='pressure'){h.innerHTML='Bộ điều áp giữ áp suất; pít-tông tự cân bằng.';lever.disabled=false;const v=(containerBottom-pistonY)/240;targetPressure=particles.length*T/(v*12000);pressureSlider.value=targetPressure}else{h.innerHTML='Kéo tay nắm kim loại để thay đổi thể tích.';lever.disabled=false}}
+function manualAdjustPressure(v){targetPressure=+v;document.getElementById('pressureSet').textContent=targetPressure.toFixed(2);const n=particles.length;if(!n)return;if(lockMode==='volume'){T=Math.max(10,targetPressure*(containerBottom-pistonY)/240*12000/n)}else pistonY=Math.max(topLimit,Math.min(bottomLimit,containerBottom-(n*T/(targetPressure*12000))*240))}
+function getCanvasPos(e){const r=canvas.getBoundingClientRect(),p=e.touches?e.touches[0]:e;return{x:(p.clientX-r.left)*canvas.width/r.width,y:(p.clientY-r.top)*canvas.height/r.height}}
+function handleStart(e){if(lockMode==='volume')return;const p=getCanvasPos(e);if(p.x>=containerLeft-20&&p.x<=containerLeft+containerWidth+20&&Math.abs(p.y-pistonY)<34){isDraggingPiston=true;if(e.cancelable)e.preventDefault()}}
+function handleMove(e){if(!isDraggingPiston)return;const p=getCanvasPos(e);pistonY=Math.max(topLimit,Math.min(bottomLimit,p.y));if(e.cancelable)e.preventDefault()}function handleEnd(){isDraggingPiston=false}
+canvas.addEventListener('mousedown',handleStart);canvas.addEventListener('mousemove',handleMove);window.addEventListener('mouseup',handleEnd);canvas.addEventListener('touchstart',handleStart,{passive:false});canvas.addEventListener('touchmove',handleMove,{passive:false});window.addEventListener('touchend',handleEnd);
+function adjustTemp(v){if(lockMode==='temp')return;leverVal=+v;document.getElementById('heatIcon').textContent=leverVal>0?'🔥':leverVal<0?'❄':'○'}function resetLever(){leverVal=0;tempLever.value=0;document.getElementById('heatIcon').textContent='○'}
+function roundedRect(x,y,w,h,r,fill,stroke){ctx.beginPath();ctx.roundRect(x,y,w,h,r);if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.stroke()}}
+function drawGauge(x,y,r,value,max,label,color){ctx.save();ctx.translate(x,y);ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fillStyle='#263238';ctx.fill();ctx.lineWidth=3;ctx.strokeStyle='#90a4ae';ctx.stroke();ctx.beginPath();ctx.arc(0,0,r-6,Math.PI*.75,Math.PI*2.25);ctx.strokeStyle='#eceff1';ctx.lineWidth=2;ctx.stroke();const a=Math.PI*.75+(Math.PI*1.5)*Math.min(1,value/max);ctx.rotate(a);ctx.strokeStyle=color;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-5,0);ctx.lineTo(r-9,0);ctx.stroke();ctx.restore();ctx.fillStyle='#263238';ctx.font='11px Arial';ctx.textAlign='center';ctx.fillText(label,x,y+r+15)}
+function drawApparatus(){ctx.clearRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#78909c';ctx.fillRect(45,390,470,10);ctx.fillStyle='#455a64';ctx.fillRect(55,400,18,8);ctx.fillRect(487,400,18,8);ctx.fillStyle='#546e7a';ctx.fillRect(130,35,325,10);ctx.fillRect(138,43,10,350);ctx.fillRect(437,43,10,350);ctx.fillStyle='#78909c';ctx.fillRect(112,382,350,12);
+// glass cylinder
+ctx.fillStyle='rgba(111,204,229,.16)';ctx.fillRect(containerLeft,pistonY+7,containerWidth,containerBottom-pistonY-7);ctx.strokeStyle='#51818f';ctx.lineWidth=3;ctx.strokeRect(containerLeft,50,containerWidth,containerBottom-50);
+// scale markings
+ctx.strokeStyle='#607d86';ctx.lineWidth=1;for(let i=0;i<=10;i++){let y=50+i*31;ctx.beginPath();ctx.moveTo(containerLeft-9,y);ctx.lineTo(containerLeft-2,y);ctx.stroke();ctx.fillStyle='#607078';ctx.font='9px Arial';ctx.textAlign='right';ctx.fillText((1-i*.1).toFixed(1)+' L',containerLeft-13,y+3)}
+// piston and rod
+ctx.fillStyle='#c5ced1';ctx.fillRect(containerLeft-5,pistonY-8,containerWidth+10,17);ctx.strokeStyle='#37474f';ctx.strokeRect(containerLeft-5,pistonY-8,containerWidth+10,17);ctx.fillStyle='#607078';ctx.fillRect(containerLeft+containerWidth/2-7,38,14,pistonY-38);ctx.fillStyle=isDraggingPiston?'#d64b3f':'#9aa8ad';ctx.beginPath();ctx.arc(containerLeft+containerWidth/2,32,15,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#37474f';ctx.stroke();
+// lock clamps
+if(lockMode==='volume'){ctx.fillStyle='#d64b3f';ctx.fillRect(containerLeft-20,pistonY-13,13,25);ctx.fillRect(containerLeft+containerWidth+7,pistonY-13,13,25)}
+// valve and hose
+ctx.strokeStyle='#455a64';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(120,300);ctx.lineTo(120,220);ctx.lineTo(containerLeft,220);ctx.stroke();ctx.fillStyle='#d64b3f';ctx.fillRect(106,205,28,10);ctx.fillRect(114,190,12,25);ctx.fillStyle='#eceff1';ctx.fillRect(111,180+pumpOffsetY,18,25);ctx.strokeStyle='#607078';ctx.strokeRect(111,180+pumpOffsetY,18,25);
+// heat plate
+ctx.fillStyle=leverVal>0?'#e35d45':'#607078';ctx.fillRect(containerLeft-12,containerBottom+5,containerWidth+24,9);if(leverVal>0){ctx.fillStyle='#e35d45';ctx.font='18px Arial';ctx.textAlign='center';ctx.fillText('♨',containerLeft+containerWidth/2,containerBottom+34)}
+// external instruments
+drawGauge(75,100,34,((particles.length*T)/(((containerBottom-pistonY)/240)*12000)),3,'P', '#e35d45');ctx.fillStyle='#263238';ctx.font='11px Arial';ctx.textAlign='center';ctx.fillText('ÁP KẾ',75,150);ctx.fillStyle='#d64b3f';ctx.fillRect(505,120,6,170);ctx.fillStyle='#fff';ctx.fillRect(502,120,12,4);ctx.fillRect(502,286,12,4);ctx.fillStyle='#d64b3f';ctx.beginPath();ctx.arc(508,290,8,0,Math.PI*2);ctx.fill();ctx.fillStyle='#263238';ctx.font='11px Arial';ctx.fillText('NHIỆT KẾ',508,310)}
+function animate(){if(leverVal&&lockMode!=='temp')T=Math.max(10,T+leverVal*2.5);const n=particles.length;if(lockMode==='pressure'&&n){const y=containerBottom-(n*T/(targetPressure*12000))*240;pistonY+=(Math.max(topLimit,Math.min(bottomLimit,y))-pistonY)*.08}const b={left:containerLeft+5,right:containerLeft+containerWidth-5,top:pistonY+10,bottom:containerBottom-5};particles.forEach(p=>{p.update(b,Math.sqrt(T)*.12);p.draw()});drawApparatus();particles.forEach(p=>p.draw());const v=(containerBottom-pistonY)/240,p=n?n*T/(v*12000):0;tempReadout.textContent=Math.round(T);volReadout.textContent=v.toFixed(2);pressureReadout.textContent=(lockMode==='pressure'?targetPressure:p).toFixed(2);if(lockMode!=='pressure'){pressureSlider.value=Math.max(.2,Math.min(3,p));pressureSet.textContent=Math.max(.2,Math.min(3,p)).toFixed(2)}requestAnimationFrame(animate)}
+pumpParticles(50);animate();
+</script></body></html>
