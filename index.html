@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tuất</title>
+    <title>Mô Phỏng Khí Lý Tưởng</title>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; user-select: none; }
         body {
@@ -198,7 +198,6 @@ class IdealGasParticle {
 }
 
 function pumpParticles(count) {
-    // Hiệu ứng kéo cần bơm xuống rồi nảy lên
     pumpOffsetY = 25;
     setTimeout(() => pumpOffsetY = 0, 150);
 
@@ -233,19 +232,16 @@ function setProcess(mode) {
     }
 }
 
-// Thay đổi áp suất trực tiếp bằng thanh trượt
 function manualAdjustPressure(val) {
     targetPressure = parseFloat(val);
     const N = particles.length;
     if (N === 0) return;
 
     if (lockMode === 'volume') {
-        // V cố định -> Điều chỉnh T để đạt P mong muốn (P ∝ T)
         const V = (containerBottom - pistonY) / 240;
         T = (targetPressure * V * 12000) / N;
         if (T < 10) T = 10;
     } else {
-        // Điều chỉnh vị trí Pít-tông để thay đổi Thể tích V tương ứng với Áp suất mới
         const desiredV = (N * T) / (targetPressure * 12000);
         let desiredPistonY = containerBottom - (desiredV * 240);
         if (desiredPistonY < 80) desiredPistonY = 80;
@@ -254,7 +250,6 @@ function manualAdjustPressure(val) {
     }
 }
 
-// Sự kiện kéo pít-tông
 canvas.addEventListener('mousedown', (e) => {
     if (lockMode === 'volume') return;
     const rect = canvas.getBoundingClientRect();
@@ -294,7 +289,6 @@ function resetLever() {
 }
 
 function drawContainerAndPump() {
-    // 1. Bình Xilanh
     ctx.strokeStyle = '#4dabf7';
     ctx.lineWidth = 4;
     ctx.beginPath();
@@ -304,7 +298,6 @@ function drawContainerAndPump() {
     ctx.lineTo(containerLeft + containerWidth, 60);
     ctx.stroke();
 
-    // 2. Pít-tông
     ctx.fillStyle = (lockMode === 'volume') ? '#555' : (isDraggingPiston ? '#ff6b6b' : '#ffffd1');
     ctx.fillRect(containerLeft + 2, pistonY - 10, containerWidth - 4, 14);
 
@@ -321,21 +314,17 @@ function drawContainerAndPump() {
         ctx.fill();
     }
 
-    // 3. Mô phỏng Ống Bơm PhET bên trái
     const pumpX = 35;
     const pumpY = 280 + pumpOffsetY;
     
-    // Thân ống bơm
     ctx.fillStyle = '#ff922b';
     ctx.fillRect(pumpX - 12, pumpY, 24, 90);
-    // Vòi kết nối vào xilanh
     ctx.strokeStyle = '#aaa';
     ctx.lineWidth = 6;
     ctx.beginPath();
     ctx.moveTo(pumpX, pumpY + 60);
     ctx.lineTo(containerLeft, containerBottom - 40);
     ctx.stroke();
-    // Tay cầm bơm
     ctx.fillStyle = '#e03131';
     ctx.fillRect(pumpX - 25, pumpY - 15, 50, 15);
 }
@@ -362,7 +351,6 @@ function animate() {
 
     const N = particles.length;
 
-    // Đẳng áp: Tự động điều chỉnh Pít-tông theo Nhiệt độ T và số hạt N
     if (lockMode === 'pressure' && N > 0) {
         const desiredV = (N * T) / (targetPressure * 12000);
         let desiredPistonY = containerBottom - (desiredV * 240);
@@ -382,7 +370,6 @@ function animate() {
     drawContainerAndPump();
     drawHeatEffect();
 
-    // Tính toán P và V
     const currentHeight = containerBottom - pistonY;
     const V = (currentHeight / 240);
     const P = N > 0 ? ((N * T) / (V * 12000)).toFixed(2) : "0.00";
@@ -403,4 +390,4 @@ animate();
 </script>
 
 </body>
-    </html>
+</html>
