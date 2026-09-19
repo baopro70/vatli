@@ -1,1 +1,48 @@
-<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Deep Space Pressure RPG</title><link rel="stylesheet" href="style.css"></head><body><main><header><b>◉ HELIOS // RPG ENGINEERING</b><span>⚠ KHẨN CẤP <strong id="clock">06:00</strong></span><button id="reset">↻ RESET</button></header><section class="hud"><label>OXYGEN <b id="oxygen">78%</b><i><em id="oxygenBar"></em></i></label><label>POWER <b id="power">64%</b><i><em id="powerBar"></em></i></label><label>HULL <b id="hull">100%</b><i><em id="hullBar"></em></i></label><label>CORE TEMP <b id="temp">294 K</b></label></section><div class="game"><div class="world"><canvas id="world" width="900" height="540"></canvas><canvas id="fx" aria-hidden="true"></canvas><p id="hint">WASD / phím mũi tên: di chuyển · Đến NPC hoặc bảng nhiệm vụ và nhấn E</p></div><aside><h3>QUEST LOG <b id="count">01 / 04</b></h3><div id="tasks"></div><div class="npc-log"><b>CREW STATUS</b><p id="crewStatus">Mira đang chờ bạn tại khu điều khiển.</p></div><small>● NPC　<span>●</span> Điểm nhiệm vụ</small></aside></div></main><div id="modal" class="modal off"><article><button id="close">×</button><small id="modalKicker">NPC COMMUNICATION</small><h1 id="title"></h1><p id="desc"></p><div id="actionArea"></div></article></div><div id="end" class="modal off"><article class="ending"><big>✦</big><h1 id="endTitle"></h1><p id="endText"></p><b id="score"></b><button id="again">CHƠI LẠI →</button></article></div><script src="app.js"></script><script src="effects.js"></script></body></html>
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Deep Space Pressure — O₂ Tank Quest</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="console">
+    <header class="topbar">
+      <div class="brand"><span class="brand-dot">◉</span> HELIOS // ENGINEERING CONSOLE</div>
+      <div class="mission-state"><span class="led"></span><span id="systemState">QUEST ACTIVE</span></div>
+    </header>
+
+    <section class="layout">
+      <aside class="briefing panel">
+        <div class="panel-label">QUEST 01 / 04</div>
+        <h1>ỔN ĐỊNH BÌNH O₂</h1>
+        <p class="muted">Bình oxy đang ở trạng thái nguy hiểm. Hãy thực hiện đúng quy trình kỹ thuật để đưa hệ thống về điều kiện an toàn.</p>
+        <div class="crew-card"><div class="avatar mira">M</div><div><b>MIRA</b><small>Kỹ sư hệ thống</small></div></div>
+        <div class="procedure"><span class="step active" id="stepIndicator1">01</span><div><b>CÔ LẬP BÌNH</b><small>Ngắt bình khỏi mạng khí chính.</small></div></div>
+        <div class="procedure"><span class="step" id="stepIndicator2">02</span><div><b>GIỮ VAN LÀM MÁT</b><small>Nhấn giữ cho đến khi nhiệt độ đạt 300 K.</small></div></div>
+        <div class="procedure"><span class="step" id="stepIndicator3">03</span><div><b>XẢ ÁP TỪ TỪ</b><small>Hạ áp suất về 1.00 atm.</small></div></div>
+      </aside>
+
+      <section class="panel workstation">
+        <div class="panel-label">LIVE TANK TELEMETRY <span id="phaseLabel">PHASE 1 · ISOLATION</span></div>
+        <div class="gauges">
+          <div class="gauge-card danger" id="tempCard"><div class="gauge-head"><span>NHIỆT ĐỘ BÌNH</span><strong><span id="tempValue">486</span> K</strong></div><div class="bar"><i id="tempBar"></i></div><div class="scale"><span>300 K SAFE</span><span>486 K CRITICAL</span></span></div></div>
+          <div class="gauge-card danger" id="pressureCard"><div class="gauge-head"><span>ÁP SUẤT</span><strong><span id="pressureValue">2.80</span> atm</strong></div><div class="bar"><i id="pressureBar"></i></div><div class="scale"><span>1.00 SAFE</span><span>2.80 CRITICAL</span></div></div>
+        </div>
+        <div class="tank-visual"><div class="tank"><div class="tank-glow"></div><div class="tank-label">O₂</div><div class="tank-fill" id="tankFill"></div></div><div class="pipes"><span></span><span></span><span></span></div><div class="warning" id="warning">⚠ PRESSURE VESSEL UNSTABLE</div></div>
+        <div class="controls">
+          <button class="control" id="isolateBtn"><span class="control-number">01</span><span><b>CÔ LẬP BÌNH</b><small>Ngắt van chính</small></span><em id="isolateStatus">READY</em></button>
+          <button class="control" id="coolBtn"><span class="control-number">02</span><span><b>GIỮ VAN LÀM MÁT</b><small>Nhấn giữ · 300 K</small></span><em id="coolStatus">LOCKED</em></button>
+          <button class="control" id="ventBtn"><span class="control-number">03</span><span><b>XẢ ÁP TỪ TỪ</b><small>Nhấn giữ · 1.00 atm</small></span><em id="ventStatus">LOCKED</em></button>
+        </div>
+        <div class="feedback" id="feedback"><span class="feedback-led"></span> Đọc thông số trước khi thao tác. Quy trình bắt đầu bằng việc cô lập bình.</div>
+      </section>
+    </section>
+
+    <footer class="ship-status"><span>OXYGEN TANK QUEST</span><div class="ship-meter"><i id="oxygenBar"></i></div><b id="oxygenValue">78%</b><button id="resetBtn" class="reset">↻ RESET QUEST</button></footer>
+  </main>
+  <div id="successModal" class="modal hidden"><div class="success-card"><div class="success-icon">✓</div><p class="panel-label">QUEST COMPLETE</p><h2>BÌNH O₂ ĐÃ ỔN ĐỊNH</h2><p>Nhiệt độ và áp suất đã trở về vùng an toàn. OXYGEN của tàu được phục hồi.</p><strong id="successOxygen">OXYGEN +10%</strong><button id="continueBtn">TIẾP TỤC NHIỆM VỤ →</button></div></div>
+  <script src="app.js"></script>
+</body>
+</html>
