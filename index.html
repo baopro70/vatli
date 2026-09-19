@@ -1,50 +1,46 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Phòng thí nghiệm vật chất</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#07152f" />
+  <title>Deep Space Pressure — Trạm Helios</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<h1>Phòng thí nghiệm vật chất</h1>
-<div class="subtitle">Quan sát cấu trúc rắn, lỏng và khí trong xi-lanh</div>
-<div class="sim-container">
-<canvas id="phetCanvas" width="560" height="430"></canvas>
-<div class="panel">
-<div class="box"><div class="box-title">Mẫu vật và trạng thái</div>
-<div class="control-row"><label>Chất mô phỏng</label><select id="substanceSelect"><option value="neon">Neon (Ne)</option><option value="argon">Argon (Ar)</option><option value="water">Nước (H₂O)</option><option value="oxygen">Oxy (O₂)</option></select></div>
-<div class="control-row" style="margin-top:7px"><label>Trạng thái vật chất</label><select id="stateSelect"><option value="gas">Khí</option><option value="liquid">Lỏng</option><option value="solid">Rắn</option></select></div>
-<div class="hint" id="stateHint">Các hạt chuyển động nhanh và chiếm toàn bộ thể tích.</div></div>
-<div class="box"><div class="box-title">Điều kiện thí nghiệm</div><div class="radio-group"><label><input type="radio" name="keepConst" value="none" checked> Tự do</label><label><input type="radio" name="keepConst" value="temp"> Đẳng nhiệt</label><label><input type="radio" name="keepConst" value="volume"> Đẳng tích</label><label><input type="radio" name="keepConst" value="pressure"> Đẳng áp</label></div><div class="hint" id="processHint">Kéo pít-tông hoặc kéo tay bơm bên trái để nạp vật chất.</div></div>
-<div class="box"><div class="box-title">Nạp vật chất và tải trọng</div><div class="control-row"><label>Số hạt / phân tử: <b id="particleCountText">50</b></label><div class="hint">Kéo tay bơm xuống rồi thả để nạp thêm 10 hạt.</div><button class="pump-btn reset-btn" id="resetButton">Khởi động lại</button></div><div class="control-row" style="margin-top:8px"><label>Áp suất đặt: <b id="pressureSet">1.00</b> atm</label><input type="range" id="pressureSlider" min="0.2" max="3" step=".05" value="1"></div></div>
-<div class="box"><div class="box-title">Bộ gia nhiệt / làm lạnh</div><div class="heater-control"><div class="labels"><span style="color:#b7352d">NÓNG</span><span style="color:#607078">GIỮ</span><span style="color:#16749e">LẠNH</span></div><div class="slider-axis"><input id="tempLever" class="v-slider" type="range" min="-1" max="1" step=".05" value="0"></div><div id="heatIcon" class="heat-status">○</div></div></div>
-<div class="box"><div class="box-title">Bảng đồng hồ đo</div><div class="instrument-row"><div class="instrument"><small>Nhiệt độ</small><strong><span id="tempReadout">300</span> K</strong></div><div class="instrument"><small>Thể tích</small><strong><span id="volReadout">1.00</span> L</strong></div><div class="instrument"><small>Áp suất</small><strong><span id="pressureReadout">1.00</span> atm</strong></div></div></div>
-</div><div class="legend">Ne, Ar là nguyên tử đơn • H₂O, O₂ được vẽ thành phân tử liên kết</div></div>
-<script>
-const canvas=document.getElementById('phetCanvas'),ctx=canvas.getContext('2d');
-const BREAK_PRESSURE=2.9,BREAK_TEMP=520,left=175,width=235,bottom=365,topLimit=78,bottomLimit=300,pumpX=120,pumpTop=180;
-let T=300,targetPressure=1,lockMode='none',particles=[],leverVal=0,pistonY=165,draggingPiston=false,draggingPump=false,pumpOffset=0,isBroken=false,cap=null,fragments=[],state='gas',substance='neon';
-const info={neon:{color:'#ff657a',edge:'#9e263e',name:'Ne'},argon:{color:'#9d8cff',edge:'#4f3f9c',name:'Ar'},water:{color:'#54b9ff',edge:'#176d9e',name:'H₂O'},oxygen:{color:'#ef6258',edge:'#932c28',name:'O₂'}};
-class Particle{constructor(x,y,i){this.x=x;this.y=y;this.i=i;const a=Math.random()*Math.PI*2;this.vx=Math.cos(a);this.vy=Math.sin(a);this.r=substance==='water'?4:3;this.phase=Math.random()*6.28;this.homeX=left+22+(i%10)*21;this.homeY=100+Math.floor(i/10)*18}update(b,s){if(state==='solid'){this.x+=(this.homeX-this.x)*.08+Math.cos(this.phase+performance.now()/300)*.18;this.y+=(this.homeY-this.y)*.08+Math.sin(this.phase+performance.now()/340)*.18;return}if(state==='liquid'){this.vy+=.025;this.x+=this.vx*s*.55;this.y+=this.vy*s*.55}else{this.x+=this.vx*s;this.y+=this.vy*s}if(this.x-this.r<b.left){this.x=b.left+this.r;this.vx=Math.abs(this.vx)}if(this.x+this.r>b.right){this.x=b.right-this.r;this.vx=-Math.abs(this.vx)}if(this.y-this.r<b.top){this.y=b.top+this.r;this.vy=Math.abs(this.vy)}if(this.y+this.r>b.bottom){this.y=b.bottom-this.r;this.vy=-Math.abs(this.vy)*.85;if(state==='liquid')this.vy-=Math.random()*.5}}draw(){const c=info[substance];ctx.save();ctx.translate(this.x,this.y);if(substance==='water'){ctx.rotate(this.vx*.12);ctx.strokeStyle=c.edge;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-7,2);ctx.lineTo(0,0);ctx.lineTo(7,2);ctx.stroke();ctx.fillStyle='#ef554e';ctx.beginPath();ctx.arc(0,0,4,0,Math.PI*2);ctx.fill();ctx.fillStyle='#d7f2ff';ctx.beginPath();ctx.arc(-7,2,3,0,Math.PI*2);ctx.arc(7,2,3,0,Math.PI*2);ctx.fill()}else if(substance==='oxygen'){ctx.fillStyle=c.color;ctx.strokeStyle=c.edge;ctx.beginPath();ctx.arc(-4,0,4,0,Math.PI*2);ctx.arc(4,0,4,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.strokeStyle=c.edge;ctx.beginPath();ctx.moveTo(-1,0);ctx.lineTo(1,0);ctx.stroke()}else{ctx.fillStyle=c.color;ctx.strokeStyle=c.edge;ctx.beginPath();ctx.arc(0,0,this.r,0,Math.PI*2);ctx.fill();ctx.stroke()}ctx.restore()}}
-function makeParticles(n){particles=[];for(let i=0;i<n;i++)particles.push(new Particle(left+15+Math.random()*(width-30),pistonY+18+Math.random()*Math.max(12,bottom-pistonY-32),i));particleCountText.textContent=n}
-function pump(n){if(isBroken)return;const old=particles.length;for(let i=0;i<n;i++)particles.push(new Particle(left+15+Math.random()*(width-30),pistonY+18+Math.random()*Math.max(12,bottom-pistonY-32),old+i));particleCountText.textContent=particles.length}
-function setState(v){state=v;const text={gas:'Các hạt chuyển động nhanh và chiếm toàn bộ thể tích.',liquid:'Các phân tử gần nhau, chảy và tập trung ở đáy bình.',solid:'Các hạt xếp trật tự và chỉ dao động quanh vị trí cân bằng.'};stateHint.textContent=text[v];if(particles.length)makeParticles(particles.length)}
-function setSubstance(v){substance=v;makeParticles(particles.length||50)}
-function setProcess(m){if(isBroken)return;lockMode=m;if(m==='temp'){processHint.textContent='Pít-tông di chuyển, nhiệt độ được giữ cố định.';tempLever.disabled=true}else if(m==='volume'){processHint.textContent='Pít-tông được khóa bằng chốt; chỉ đổi nhiệt độ hoặc số hạt.';tempLever.disabled=false}else if(m==='pressure'){processHint.textContent='Bộ điều áp giữ áp suất; pít-tông tự cân bằng.';tempLever.disabled=false}else{processHint.textContent='Kéo pít-tông hoặc kéo tay bơm bên trái để nạp vật chất.';tempLever.disabled=false}}
-function adjustPressure(v){if(isBroken)return;targetPressure=+v;pressureSet.textContent=targetPressure.toFixed(2);if(!particles.length)return;if(lockMode==='volume')T=Math.max(10,targetPressure*(bottom-pistonY)/240*12000/particles.length);else pistonY=Math.max(topLimit,Math.min(bottomLimit,bottom-(particles.length*T/(targetPressure*12000))*240))}
-function pointer(e){const r=canvas.getBoundingClientRect(),p=e.touches?e.touches[0]:e;return{x:(p.clientX-r.left)*canvas.width/r.width,y:(p.clientY-r.top)*canvas.height/r.height}}
-function start(e){if(isBroken)return;const p=pointer(e);if(p.x>85&&p.x<150&&p.y>150&&p.y<250){draggingPump=true;pumpOffset=0;e.preventDefault?.();return}if(lockMode==='volume'||state==='solid')return;if(p.x>=left-20&&p.x<=left+width+20&&Math.abs(p.y-pistonY)<34){draggingPiston=true;e.preventDefault?.()}}
-function move(e){if(isBroken)return;const p=pointer(e);if(draggingPump){pumpOffset=Math.max(-18,Math.min(30,p.y-(pumpTop+25)));e.preventDefault?.()}else if(draggingPiston){pistonY=Math.max(topLimit,Math.min(bottomLimit,p.y));e.preventDefault?.()}}
-function end(){if(draggingPump&&pumpOffset>8)pump(10);draggingPump=false;draggingPiston=false;pumpOffset=0}
-canvas.addEventListener('mousedown',start);canvas.addEventListener('mousemove',move);window.addEventListener('mouseup',end);canvas.addEventListener('touchstart',start,{passive:false});canvas.addEventListener('touchmove',move,{passive:false});window.addEventListener('touchend',end);
-function breakCap(){if(isBroken)return;isBroken=true;cap={x:left+width/2,y:pistonY-7,vx:(Math.random()-.5)*2,vy:-12,rotation:0,vr:(Math.random()-.5)*.18};for(let i=0;i<18;i++)fragments.push({x:cap.x+(Math.random()-.5)*width,y:cap.y,vx:(Math.random()-.5)*8,vy:-2-Math.random()*6,rotation:Math.random()*6,vr:(Math.random()-.5)*.4,size:5+Math.random()*8});tempLever.disabled=true;pressureSlider.disabled=true}
-function reset(){isBroken=false;cap=null;fragments=[];T=300;targetPressure=1;lockMode='none';leverVal=0;pistonY=165;pumpOffset=0;tempLever.disabled=false;pressureSlider.disabled=false;pressureSlider.value=1;tempLever.value=0;heatIcon.textContent='○';state='gas';stateSelect.value='gas';substance='neon';substanceSelect.value='neon';makeParticles(50);stateHint.textContent='Các hạt chuyển động nhanh và chiếm toàn bộ thể tích.';processHint.textContent='Kéo pít-tông hoặc kéo tay bơm bên trái để nạp vật chất.';document.querySelector('input[value="none"]').checked=true}
-function drawGauge(x,y,r,value){ctx.save();ctx.translate(x,y);ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fillStyle='#263238';ctx.fill();ctx.strokeStyle='#90a4ae';ctx.lineWidth=3;ctx.stroke();const a=Math.PI*.75+Math.PI*1.5*Math.min(1,value/3);ctx.rotate(a);ctx.strokeStyle='#e35d45';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-5,0);ctx.lineTo(r-9,0);ctx.stroke();ctx.restore()}
-function drawBase(){ctx.clearRect(0,0,560,430);ctx.fillStyle='#78909c';ctx.fillRect(45,390,470,10);ctx.fillStyle='#455a64';ctx.fillRect(55,400,18,8);ctx.fillRect(487,400,18,8);ctx.fillStyle='#546e7a';ctx.fillRect(130,35,325,10);ctx.fillRect(138,43,10,350);ctx.fillRect(437,43,10,350);ctx.fillStyle='rgba(111,204,229,.16)';ctx.fillRect(left,pistonY+7,width,bottom-pistonY-7);ctx.strokeStyle='#51818f';ctx.lineWidth=3;ctx.strokeRect(left,50,width,bottom-50);ctx.strokeStyle='#607d86';ctx.lineWidth=1;for(let i=0;i<=10;i++){const y=50+i*31;ctx.beginPath();ctx.moveTo(left-9,y);ctx.lineTo(left-2,y);ctx.stroke();ctx.fillStyle='#607078';ctx.font='9px Arial';ctx.textAlign='right';ctx.fillText((1-i*.1).toFixed(1)+' L',left-13,y+3)}ctx.fillStyle='#607078';ctx.fillRect(left+width/2-7,38,14,Math.max(0,pistonY-38));if(!isBroken){ctx.fillStyle='#c5ced1';ctx.fillRect(left-5,pistonY-8,width+10,17);ctx.strokeStyle='#37474f';ctx.strokeRect(left-5,pistonY-8,width+10,17);ctx.fillStyle=draggingPiston?'#d64b3f':'#9aa8ad';ctx.beginPath();ctx.arc(left+width/2,32,15,0,Math.PI*2);ctx.fill();ctx.stroke()}if(lockMode==='volume'&&!isBroken){ctx.fillStyle='#d64b3f';ctx.fillRect(left-20,pistonY-13,13,25);ctx.fillRect(left+width+7,pistonY-13,13,25)}ctx.strokeStyle='#455a64';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(pumpX,300);ctx.lineTo(pumpX,220);ctx.lineTo(left,220);ctx.stroke();ctx.fillStyle='#d64b3f';ctx.fillRect(pumpX-14,205,28,10);ctx.fillStyle='#eceff1';ctx.fillRect(pumpX-9,pumpTop+pumpOffset,18,25);ctx.strokeStyle=draggingPump?'#d64b3f':'#607078';ctx.lineWidth=2;ctx.strokeRect(pumpX-9,pumpTop+pumpOffset,18,25);ctx.fillStyle='#37474f';ctx.fillRect(pumpX-20,pumpTop-5+pumpOffset,40,7);ctx.fillStyle='#607078';ctx.font='10px Arial';ctx.textAlign='center';ctx.fillText('KÉO',pumpX,pumpTop-14+pumpOffset);ctx.fillStyle=leverVal>0?'#e35d45':'#607078';ctx.fillRect(left-12,bottom+5,width+24,9);drawGauge(75,120,34,particles.length*T/(((bottom-pistonY)/240)*12000))}
-function drawFlyingCap(){if(!cap)return;cap.x+=cap.vx;cap.y+=cap.vy;cap.vy+=.22;cap.rotation+=cap.vr;ctx.save();ctx.translate(cap.x,cap.y);ctx.rotate(cap.rotation);ctx.fillStyle='#b7c4cb';ctx.strokeStyle='#475d68';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-width/2,-5);ctx.lineTo(-18,-10);ctx.lineTo(-4,-18);ctx.lineTo(20,-8);ctx.lineTo(width/2,-6);ctx.lineTo(width/2,12);ctx.lineTo(18,8);ctx.lineTo(0,18);ctx.lineTo(-16,9);ctx.lineTo(-width/2,10);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();fragments.forEach(f=>{f.x+=f.vx;f.y+=f.vy;f.vy+=.16;f.rotation+=f.vr;ctx.save();ctx.translate(f.x,f.y);ctx.rotate(f.rotation);ctx.fillStyle='#bcc6cc';ctx.strokeStyle='#4d5d66';ctx.fillRect(-f.size/2,-f.size/2,f.size,f.size*1.4);ctx.strokeRect(-f.size/2,-f.size/2,f.size,f.size*1.4);ctx.restore()})}
-function frame(){if(!isBroken){if(leverVal&&lockMode!=='temp')T=Math.max(10,T+leverVal*2.5);if(lockMode==='pressure'&&particles.length){const y=bottom-(particles.length*T/(targetPressure*12000));pistonY+=(Math.max(topLimit,Math.min(bottomLimit,y))-pistonY)*.08}const b={left:left+5,right:left+width-5,top:pistonY+10,bottom:bottom-5};particles.forEach(p=>p.update(b,Math.sqrt(T)*.12));drawBase();particles.forEach(p=>p.draw());const V=(bottom-pistonY)/240,P=particles.length?particles.length*T/(V*12000):0;tempReadout.textContent=Math.round(T);volReadout.textContent=V.toFixed(2);pressureReadout.textContent=(lockMode==='pressure'?targetPressure:P).toFixed(2);if(lockMode!=='pressure'){pressureSlider.value=Math.max(.2,Math.min(3,P));pressureSet.textContent=Math.max(.2,Math.min(3,P)).toFixed(2)}if(P>BREAK_PRESSURE||T>BREAK_TEMP)breakCap()}else{drawBase();drawFlyingCap();particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.08})}requestAnimationFrame(frame)}
-document.querySelectorAll('input[name="keepConst"]').forEach(r=>r.addEventListener('change',e=>setProcess(e.target.value)));substanceSelect.addEventListener('change',e=>setSubstance(e.target.value));stateSelect.addEventListener('change',e=>setState(e.target.value));resetButton.addEventListener('click',reset);pressureSlider.addEventListener('input',e=>adjustPressure(e.target.value));tempLever.addEventListener('input',e=>{if(lockMode!=='temp'&&!isBroken){leverVal=+e.target.value;heatIcon.textContent=leverVal>0?'🔥':leverVal<0?'❄':'○'}});tempLever.addEventListener('change',()=>{leverVal=0;tempLever.value=0;heatIcon.textContent='○'});makeParticles(50);frame();
-</script>
+  <div class="stars" aria-hidden="true"></div>
+  <main id="app">
+    <section id="startScreen" class="screen start-screen">
+      <div class="brand"><span class="brand-mark">◉</span><span>HELIOS // TRAINING DECK</span></div>
+      <div class="hero-copy">
+        <p class="eyebrow">SIMULATION 04 · CRITICAL SYSTEMS</p>
+        <h1>DEEP SPACE<br><span>PRESSURE</span></h1>
+        <p class="lead">Bạn là kỹ sư cuối cùng còn đủ tỉnh táo trên trạm Helios. Hãy giữ phi hành đoàn sống sót bằng cách biến các định luật khí thành quyết định trong tích tắc.</p>
+        <button id="startBtn" class="primary-btn">KHỞI ĐỘNG MÔ PHỎNG <span>→</span></button>
+      </div>
+      <div class="briefing-grid">
+        <div><b>04</b><small>KHỦNG HOẢNG</small></div><div><b>P · V · T</b><small>ĐỊNH LUẬT KHÍ</small></div><div><b>06:00</b><small>THỜI GIAN CÒN LẠI</small></div>
+      </div>
+    </section>
+
+    <section id="gameScreen" class="screen game-screen hidden">
+      <header class="topbar"><div class="brand"><span class="brand-mark">◉</span> HELIOS // <strong>OPS</strong></div><div class="mission-clock"><span class="pulse"></span> MISSION TIME <strong id="timer">06:00</strong></div><button id="resetBtn" class="ghost-btn">↻ KHỞI ĐỘNG LẠI</button></header>
+      <div class="hud">
+        <div class="resource"><div class="resource-head"><span>OXYGEN</span><strong id="oxygenValue">78%</strong></div><div class="bar"><i id="oxygenBar" class="oxygen"></i></div></div>
+        <div class="resource"><div class="resource-head"><span>POWER</span><strong id="powerValue">64%</strong></div><div class="bar"><i id="powerBar" class="power"></i></div></div>
+        <div class="resource"><div class="resource-head"><span>HULL INTEGRITY</span><strong id="hullValue">100%</strong></div><div class="bar"><i id="hullBar" class="hull"></i></div></div>
+        <div class="temp-readout"><span class="temp-icon">⌁</span><div><small>CORE TEMPERATURE</small><strong id="tempValue">294 K</strong></div></div>
+      </div>
+      <div class="content-grid">
+        <aside class="mission-panel"><div class="panel-title"><span>MISSION CONTROL</span><em id="missionCount">01 / 04</em></div><div id="missionList"></div><div class="formula-card"><span class="formula-label">QUICK REFERENCE</span><strong>PV = nRT</strong><p>Áp suất tăng khi nhiệt độ tăng trong bình kín. Thể tích tăng sẽ làm áp suất giảm nếu nhiệt độ không đổi.</p></div></aside>
+        <section class="main-panel"><div class="location-line"><span>◈ SECTOR 7G · TRẠM HELIOS</span><span id="statusLabel" class="status safe">● SYSTEM NOMINAL</span></div><div id="missionView" class="mission-view"></div><div id="eventLog" class="event-log"><span class="log-time">SYSTEM</span> Kết nối với lõi điều khiển. Chờ lệnh kỹ sư.</div></section>
+      </div>
+    </section>
+    <section id="endScreen" class="screen end-screen hidden"><div id="endIcon" class="end-icon">✦</div><p class="eyebrow">MISSION REPORT</p><h2 id="endTitle">TRẠM ĐÃ ĐƯỢC ỔN ĐỊNH</h2><p id="endMessage"></p><div id="scoreBox" class="score-box"></div><button id="againBtn" class="primary-btn">THỰC HIỆN LẠI <span>→</span></button></section>
+  </main>
+  <script src="app.js"></script>
 </body>
 </html>
