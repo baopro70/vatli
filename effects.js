@@ -1,11 +1,45 @@
-/* Mission animation + generated SFX layer. No external audio files are required. */
-const FX={ctx:null,master:null,ambient:null,raf:0,parts:[],pulse:0,flash:0,shake:0,active:false};
-function audio(){if(FX.ctx)return;const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;FX.ctx=new AC();FX.master=FX.ctx.createGain();FX.master.gain.value=.12;FX.master.connect(FX.ctx.destination)}
-function tone(freq,duration=.12,type='sine',gain=.08,slide=0){audio();if(!FX.ctx)return;const o=FX.ctx.createOscillator(),g=FX.ctx.createGain(),t=FX.ctx.currentTime;o.type=type;o.frequency.setValueAtTime(freq,t);o.frequency.linearRampToValueAtTime(Math.max(30,freq+slide),t+duration);g.gain.setValueAtTime(.001,t);g.gain.exponentialRampToValueAtTime(gain,t+.012);g.gain.exponentialRampToValueAtTime(.001,t+duration);o.connect(g);g.connect(FX.master);o.start(t);o.stop(t+duration+.02)}
-function sfx(name){audio();if(!FX.ctx)return; if(FX.ctx.state==='suspended')FX.ctx.resume(); if(name==='walk')tone(90,.045,'square',.025,-18);if(name==='ui')tone(520,.08,'triangle',.05,140);if(name==='pump'){tone(110,.16,'square',.07,80);setTimeout(()=>tone(62,.1,'sawtooth',.04,-20),70)}if(name==='weld'){tone(180,.25,'sawtooth',.05,260);tone(900,.08,'square',.018,-300)}if(name==='cool'){tone(330,.5,'sine',.04,-170)}if(name==='success'){tone(440,.12,'triangle',.06,120);setTimeout(()=>tone(660,.2,'triangle',.06,180),100)}if(name==='fail'){tone(180,.35,'sawtooth',.08,-130);setTimeout(()=>tone(90,.4,'square',.05,-30),130)}}
-function fxBurst(x,y,color='#55e6e0',count=14){for(let i=0;i<count;i++){const a=Math.random()*Math.PI*2,s=1+Math.random()*3;FX.parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,color})}}
-function fxCanvas(){const c=document.querySelector('#fx');if(!c)return;const q=c.getContext('2d'),w=c.width=c.clientWidth*devicePixelRatio,h=c.height=c.clientHeight*devicePixelRatio;q.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);q.clearRect(0,0,c.clientWidth,c.clientHeight);FX.parts=FX.parts.filter(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.08;p.life-=.025;q.globalAlpha=Math.max(0,p.life);q.fillStyle=p.color;q.fillRect(p.x,p.y,3,3);return p.life>0});q.globalAlpha=1;if(FX.flash>0){q.fillStyle=`rgba(255,100,90,${FX.flash})`;q.fillRect(0,0,c.clientWidth,c.clientHeight);FX.flash-=.035}requestAnimationFrame(fxCanvas)}
-function missionFx(kind){const canvas=document.querySelector('#world'),overlay=document.querySelector('#fx');if(!canvas||!overlay)return;const r=canvas.getBoundingClientRect(),scaleX=canvas.clientWidth/900,scaleY=canvas.clientHeight/540;let x=450,y=270;color='#55e6e0';if(kind==='weld'){x=180;y=405;color='#ffb84d'}if(kind==='pressure'){x=145;y=135;color='#ff5959'}if(kind==='pump'){x=735;y=135;color='#5fe6d2'}if(kind==='core'){x=440;y=405;color='#b38cff'}fxBurst(x*scaleX,y*scaleY,color,kind==='weld'?24:16);FX.flash=kind==='fail'?.18:.0;overlay.classList.add('fx-pulse');setTimeout(()=>overlay.classList.remove('fx-pulse'),280)}
-/* Sounds are triggered by real interaction, not automatic background audio. */
-document.addEventListener('pointerdown',e=>{audio();const id=e.target.id||'';if(id==='pump')sfx('pump');if(e.target.classList.contains('weld'))sfx('weld');if(e.target.classList.contains('action-btn'))sfx('ui')},{passive:true});document.addEventListener('keydown',e=>{if(['w','a','s','d','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)&&window.player?.moving)sfx('walk')},{passive:true});
-window.addEventListener('load',()=>{const c=document.querySelector('#fx');if(c)fxCanvas()});
+/* Visible mission animation and generated SFX. Loaded after app.js. */
+(function(){
+  const FX={ctx:null,master:null,parts:[],flash:0,shake:0};
+  const $=id=>document.getElementById(id);
+  function setup(){
+    const world=$('world'), fx=$('fx');
+    if(!world||!fx)return;
+    fx.style.position='absolute';fx.style.inset='0';fx.style.width='100%';fx.style.height='100%';fx.style.pointerEvents='none';fx.style.imageRendering='pixelated';
+    const wrap=world.parentElement; if(wrap) wrap.style.position='relative';
+    requestAnimationFrame(loop);
+  }
+  function audio(){
+    if(FX.ctx)return;
+    const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+    FX.ctx=new AC();FX.master=FX.ctx.createGain();FX.master.gain.value=.16;FX.master.connect(FX.ctx.destination);
+  }
+  function tone(f,d=.12,type='sine',gain=.08,slide=0){
+    audio();if(!FX.ctx)return;if(FX.ctx.state==='suspended')FX.ctx.resume();
+    const o=FX.ctx.createOscillator(),g=FX.ctx.createGain(),t=FX.ctx.currentTime;o.type=type;o.frequency.setValueAtTime(f,t);o.frequency.linearRampToValueAtTime(Math.max(35,f+slide),t+d);g.gain.setValueAtTime(.001,t);g.gain.exponentialRampToValueAtTime(gain,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(FX.master);o.start(t);o.stop(t+d+.02);
+  }
+  function sound(kind){
+    if(kind==='pump'){tone(95,.16,'square',.09,90);setTimeout(()=>tone(55,.1,'square',.05,-15),70)}
+    if(kind==='weld'){tone(170,.28,'sawtooth',.08,300);tone(950,.08,'square',.025,-350)}
+    if(kind==='cool'){tone(370,.55,'sine',.06,-210)}
+    if(kind==='ui')tone(540,.08,'triangle',.05,100);
+    if(kind==='success'){tone(440,.12,'triangle',.07,120);setTimeout(()=>tone(660,.2,'triangle',.07,160),110)}
+    if(kind==='fail'){tone(180,.3,'sawtooth',.1,-120);setTimeout(()=>tone(75,.4,'square',.07,-20),130)}
+  }
+  function burst(x,y,color,n=18){for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=1+Math.random()*4;FX.parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,color})}}
+  function position(kind){const map={pressure:[145,135,'#ff5959'],pump:[735,135,'#5fe6d2'],leak:[180,405,'#ffb84d'],core:[440,405,'#b38cff']};return map[kind]||[450,270,'#55e6e0']}
+  function animate(kind){const fx=$('fx');if(!fx)return;const [x,y,color]=position(kind);burst(x,y,color,kind==='leak'?28:20);fx.classList.remove('mission-flash');void fx.offsetWidth;fx.classList.add('mission-flash');sound(kind==='pressure'?'cool':kind);}
+  function loop(){
+    const fx=$('fx');if(fx){const q=fx.getContext('2d'),w=fx.clientWidth,h=fx.clientHeight,d=devicePixelRatio||1;if(fx.width!==Math.floor(w*d)||fx.height!==Math.floor(h*d)){fx.width=Math.floor(w*d);fx.height=Math.floor(h*d)}q.setTransform(d,0,0,d,0,0);q.clearRect(0,0,w,h);FX.parts=FX.parts.filter(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.1;p.life-=.025;q.globalAlpha=Math.max(0,p.life);q.fillStyle=p.color;q.fillRect(p.x,p.y,4,4);return p.life>0});q.globalAlpha=1}requestAnimationFrame(loop);
+  }
+  document.addEventListener('pointerdown',e=>{
+    const el=e.target;if(!el.matches('.action-btn,#pump,.next'))return;
+    audio();sound('ui');
+    if(el.id==='pump'){animate('pump');el.classList.add('action-pressed');setTimeout(()=>el.classList.remove('action-pressed'),180)}
+    else if(el.classList.contains('weld')){animate('leak');el.classList.add('welding');setTimeout(()=>el.classList.remove('welding'),1000)}
+    else if(el.id==='cool'){animate('pressure');el.classList.add('cooling');setTimeout(()=>el.classList.remove('cooling'),600)}
+    else if(el.classList.contains('core')){animate('core');el.classList.add('core-pulse');setTimeout(()=>el.classList.remove('core-pulse'),500)}
+  });
+  const observer=new MutationObserver(()=>{const f=$('feedback');if(!f)return;const text=f.textContent||'';if(text.includes('HỆ THỐNG ỔN ĐỊNH')){sound('success');animate('core')}if(text.includes('⚠')){sound('fail');const fx=$('fx');if(fx)fx.classList.add('mission-fail')}});observer.observe(document.body,{subtree:true,childList:true,characterData:true});
+  window.addEventListener('load',setup);if(document.readyState!=='loading')setup();
+})();
