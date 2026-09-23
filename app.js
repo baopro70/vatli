@@ -1,5 +1,6 @@
 (function () {
   const $ = (id) => document.getElementById(id);
+
   const state = {
     temp: 22,
     phase: 'solid',
@@ -7,61 +8,76 @@
     pressure: 1,
     force: 'attract',
     playing: true,
-    bucket: 0,
+    bucketTilt: 0,
     particles: []
+  };
+
+  const phaseConfig = {
+    solid: { speed: 0.18, pressure: 0.72 },
+    liquid: { speed: 0.42, pressure: 1 },
+    gas: { speed: 0.82, pressure: 1.6 }
   };
 
   function clamp(value, min, max) {
     return Math.min(max, Math.max(min, value));
   }
 
-  function updateTempText() {
-    const tempEl = $('temp');
-    const thermoFill = $('thermoFill');
-    if (!tempEl || !thermoFill) return;
+  function updateTemp() {
+    const temp = $('temp');
+    const fill = $('thermoFill');
+    if (!temp || !fill) return;
 
-    tempEl.textContent = `${Math.round(state.temp)} K`;
-    const level = clamp((state.temp - 10) / 90, 0, 1);
-    thermoFill.style.height = `${(level * 100).toFixed(1)}%`;
+    temp.textContent = `${Math.round(state.temp)} K`;
+    const value = clamp((state.temp - 10) / 90, 0, 1);
+    fill.style.height = `${(value * 100).toFixed(1)}%`;
   }
 
-  function updatePressureText() {
+  function updatePressure() {
     const label = $('pressureText');
     const needle = $('gaugeNeedle');
     if (!label || !needle) return;
 
     const normalized = clamp(state.pressure / 3, 0, 1);
-    const angle = -34 + (normalized * 68);
+    const angle = -34 + normalized * 68;
     label.textContent = `Áp suất ${state.pressure.toFixed(1)} atm`;
     needle.style.transform = `translateX(-50%) rotate(${angle}deg)`;
   }
 
-  function applyMaterial(material) {
-    state.material = material;
+  function setMaterial(name) {
+    state.material = name;
     document.querySelectorAll('.material').forEach((btn) => {
-      btn.classList.toggle('active', btn.dataset.material === material);
+      btn.classList.toggle('active', btn.dataset.material === name);
     });
   }
 
-  function applyPhase(phase) {
-    state.phase = phase;
+  function setPhase(name) {
+    state.phase = name;
     document.querySelectorAll('.phase').forEach((btn) => {
-      btn.classList.toggle('active', btn.dataset.phase === phase);
+      btn.classList.toggle('active', btn.dataset.phase === name);
     });
 
-    const phaseMap = {
-      solid: 0.65,
-      liquid: 1,
-      gas: 1.75
-    };
-    state.pressure = clamp(state.pressure * phaseMap[phase] || 1, 0.4, 3.2);
-    updatePressureText();
+    const config = phaseConfig[name] || phaseConfig.solid;
+    state.pressure = clamp(state.pressure * config.pressure, 0.4, 3.2);
+    updatePressure();
   }
 
-  function buildParticles() {
+  function setView(viewName) {
+    document.querySelectorAll('.tool-panel').forEach((panel) => {
+      const hidden = panel.id !== `${viewName}Panel`;
+      panel.classList.toggle('hidden', hidden);
+    });
+
+    document.querySelectorAll('.nav').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.view === viewName);
+    });
+  }
+
+  function createParticles() {
     const canvas = $('particles');
-    const ctx = canvas && canvas.getContext('2d');
-    if (!canvas || !ctx) return;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
     const particles = [];
     const count = 120;
@@ -69,40 +85,38 @@
       particles.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.9,
-        vy: (Math.random() - 0.5) * 0.9,
+        vx: (Math.random() - 0.5) * 1.1,
+        vy: (Math.random() - 0.5) * 1.1,
         r: 2 + Math.random() * 3,
         color: ['#7ad8ff', '#ffd166', '#7ef0b1', '#b18cff'][i % 4]
       });
     }
+
     state.particles = particles;
-    return { canvas, ctx };
   }
 
   function drawParticles() {
     const canvas = $('particles');
-    const ctx = canvas && canvas.getContext('2d');
-    if (!canvas || !ctx || !state.particles.length) return;
+    if (!canvas || !state.particles.length) return;
 
-    const phaseScale = {
-      solid: 0.35,
-      liquid: 0.75,
-      gas: 1.4
-    };
-    const scale = phaseScale[state.phase] || 1;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const config = phaseConfig[state.phase] || phaseConfig.solid;
+    const factor = config.speed * (state.temp / 30);
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     for (const p of state.particles) {
-      p.x += p.vx * scale * (state.temp / 30);
-      p.y += p.vy * scale * (state.temp / 30);
+      p.x += p.vx * factor;
+      p.y += p.vy * factor;
 
-      if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-      if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+      if (p.x <= 0 || p.x >= canvas.width) p.vx *= -1;
+      if (p.y <= 0 || p.y >= canvas.height) p.vy *= -1;
 
       ctx.beginPath();
       ctx.fillStyle = p.color;
-      ctx.globalAlpha = state.phase === 'gas' ? 0.9 : 0.75;
+      ctx.globalAlpha = state.phase === 'gas' ? 0.9 : 0.78;
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
       ctx.fill();
     }
@@ -112,60 +126,29 @@
 
   function animate() {
     if (state.playing) {
-      const phaseSpeed = {
-        solid: 0.12,
-        liquid: 0.28,
-        gas: 0.62
-      };
-      state.temp = clamp(state.temp + (Math.random() - 0.5) * 2.2 * (phaseSpeed[state.phase] || 0.2), 10, 120);
-      updateTempText();
+      const config = phaseConfig[state.phase] || phaseConfig.solid;
+      const delta = (Math.random() - 0.5) * 3.2 * config.speed;
+      state.temp = clamp(state.temp + delta, 10, 120);
+      updateTemp();
       drawParticles();
     }
 
     requestAnimationFrame(animate);
   }
 
-  function setupBucketDrag() {
-    const bucket = $('bucket');
-    if (!bucket) return;
-
-    let dragging = false;
-    let startY = 0;
-    let startBucket = 0;
-
-    bucket.addEventListener('pointerdown', (event) => {
-      dragging = true;
-      bucket.setPointerCapture(event.pointerId);
-      startY = event.clientY;
-      startBucket = state.bucket;
-    });
-
-    bucket.addEventListener('pointermove', (event) => {
-      if (!dragging) return;
-      const delta = (startY - event.clientY) / 6;
-      state.bucket = clamp(startBucket + delta, -100, 100);
-      state.temp = clamp(22 + state.bucket * 0.75, 10, 120);
-      updateTempText();
-    });
-
-    bucket.addEventListener('pointerup', () => {
-      dragging = false;
-    });
-
-    bucket.addEventListener('pointerleave', () => {
-      dragging = false;
+  function bindMaterials() {
+    document.querySelectorAll('.material').forEach((button) => {
+      button.addEventListener('click', () => setMaterial(button.dataset.material));
     });
   }
 
-  function bindButtons() {
-    document.querySelectorAll('.material').forEach((button) => {
-      button.addEventListener('click', () => applyMaterial(button.dataset.material));
-    });
-
+  function bindPhases() {
     document.querySelectorAll('.phase').forEach((button) => {
-      button.addEventListener('click', () => applyPhase(button.dataset.phase));
+      button.addEventListener('click', () => setPhase(button.dataset.phase));
     });
+  }
 
+  function bindForceButtons() {
     document.querySelectorAll('[data-force]').forEach((button) => {
       button.addEventListener('click', () => {
         state.force = button.dataset.force;
@@ -174,21 +157,61 @@
         });
       });
     });
+  }
 
+  function bindNavs() {
+    document.querySelectorAll('.nav').forEach((button) => {
+      button.addEventListener('click', () => setView(button.dataset.view));
+    });
+  }
+
+  function setupBucketDrag() {
+    const bucket = $('bucket');
+    if (!bucket) return;
+
+    let dragging = false;
+    let startY = 0;
+    let startTemp = state.temp;
+
+    bucket.addEventListener('pointerdown', (event) => {
+      dragging = true;
+      startY = event.clientY;
+      startTemp = state.temp;
+      bucket.setPointerCapture(event.pointerId);
+    });
+
+    bucket.addEventListener('pointermove', (event) => {
+      if (!dragging) return;
+      const delta = (startY - event.clientY) / 9;
+      const next = clamp(startTemp + delta * 1.2, 10, 120);
+      state.temp = next;
+      updateTemp();
+      state.bucketTilt = clamp(delta * 1.4, -25, 25);
+      bucket.style.transform = `translateX(-50%) rotate(${state.bucketTilt}deg)`;
+    });
+
+    const stopDrag = () => {
+      dragging = false;
+      state.bucketTilt = 0;
+      bucket.style.transform = 'translateX(-50%)';
+    };
+
+    bucket.addEventListener('pointerup', stopDrag);
+    bucket.addEventListener('pointercancel', stopDrag);
+    bucket.addEventListener('pointerleave', stopDrag);
+  }
+
+  function bindControls() {
     const playBtn = $('play');
     const pauseBtn = $('pause');
     const resetBtn = $('reset');
 
     if (playBtn) {
-      playBtn.addEventListener('click', () => {
-        state.playing = true;
-      });
+      playBtn.addEventListener('click', () => { state.playing = true; });
     }
 
     if (pauseBtn) {
-      pauseBtn.addEventListener('click', () => {
-        state.playing = false;
-      });
+      pauseBtn.addEventListener('click', () => { state.playing = false; });
     }
 
     if (resetBtn) {
@@ -196,27 +219,37 @@
         state.temp = 22;
         state.pressure = 1;
         state.phase = 'solid';
-        applyPhase('solid');
-        applyMaterial('neon');
-        updateTempText();
-        updatePressureText();
+        state.force = 'attract';
+        state.playing = true;
+        setPhase('solid');
+        setMaterial('neon');
+        document.querySelectorAll('[data-force]').forEach((el) => {
+          el.classList.toggle('active', el.dataset.force === 'attract');
+        });
+        updateTemp();
+        updatePressure();
       });
     }
   }
 
   function init() {
-    applyMaterial('neon');
-    applyPhase('solid');
-    updateTempText();
-    updatePressureText();
-    buildParticles();
-    bindButtons();
+    createParticles();
+    setMaterial('neon');
+    setPhase('solid');
+    setView('status');
+    bindMaterials();
+    bindPhases();
+    bindForceButtons();
+    bindNavs();
+    bindControls();
     setupBucketDrag();
+    updateTemp();
+    updatePressure();
     animate();
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', init, { once: true });
   } else {
     init();
   }

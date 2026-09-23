@@ -8,7 +8,7 @@ html, body {
   height: 100%;
   font-family: Arial, sans-serif;
   background: #0c0d10;
-  color: white;
+  color: #fff;
 }
 
 body {
@@ -28,6 +28,7 @@ button {
   background: #010305;
   box-shadow: 0 18px 28px rgba(0,0,0,0.45);
   overflow: hidden;
+  position: relative;
 }
 
 .browser-bar {
@@ -53,6 +54,7 @@ button {
   height: 12px;
   border-radius: 50%;
 }
+
 .browser-dots i:nth-child(1) { background: #ff5d53; }
 .browser-dots i:nth-child(2) { background: #f6bd3b; }
 .browser-dots i:nth-child(3) { background: #30c75a; }
@@ -63,9 +65,6 @@ button {
   background: rgba(255,255,255,0.08);
   border: 1px solid rgba(255,255,255,0.08);
   line-height: 1;
-}
-.tab.active {
-  background: rgba(255,255,255,0.12);
 }
 
 .address {
@@ -90,18 +89,19 @@ button {
   overflow: hidden;
 }
 
-.temperature-panel {
+.temperature {
   position: absolute;
-  left: 35%;
-  top: 26px;
+  left: 50%;
+  top: 24px;
+  transform: translateX(-50%);
   width: 160px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  z-index: 8;
+  z-index: 10;
 }
 
-.temp-box {
+#temp {
   background: rgba(255,255,255,0.12);
   border: 1px solid rgba(255,255,255,0.14);
   color: #f0f5ff;
@@ -111,14 +111,14 @@ button {
   font-size: 15px;
 }
 
-.thermometer {
+.thermo {
   position: relative;
   width: 24px;
   height: 160px;
   margin-top: 16px;
 }
 
-.thermometer::before {
+.thermo::before {
   content: "";
   position: absolute;
   left: 50%;
@@ -131,7 +131,7 @@ button {
   background: rgba(255,255,255,0.04);
 }
 
-.thermo-fill {
+#thermoFill {
   position: absolute;
   left: 50%;
   bottom: 18px;
@@ -143,7 +143,7 @@ button {
   transition: height 0.22s ease;
 }
 
-.thermo-bulb {
+.thermo b {
   position: absolute;
   left: 50%;
   bottom: -6px;
@@ -154,9 +154,10 @@ button {
   background: #f24d4d;
   border: 2px solid rgba(255,255,255,0.25);
   box-shadow: 0 0 12px rgba(242,77,77,0.7);
+  display: block;
 }
 
-.chamber-wrap {
+.chamber-area {
   position: absolute;
   left: 50%;
   top: 52%;
@@ -211,20 +212,25 @@ button {
   font-size: 22px;
 }
 
-#particleCanvas {
+.glass {
   position: absolute;
   left: 16px;
   right: 16px;
   top: 28px;
   bottom: 16px;
-  width: auto;
-  height: auto;
-  display: block;
   background: rgba(0,0,0,0.05);
   border: 4px solid rgba(255,255,255,0.08);
+  overflow: hidden;
 }
 
-.side-panel {
+#particles {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.15);
+}
+
+.right-panel {
   position: absolute;
   right: 78px;
   top: 34px;
@@ -236,14 +242,14 @@ button {
   z-index: 9;
 }
 
-.panel-title {
+.right-panel h2 {
   margin: 0 0 12px;
   text-align: center;
   font-size: 18px;
   font-weight: 700;
 }
 
-.material-list {
+.materials {
   display: grid;
   gap: 8px;
 }
@@ -267,7 +273,7 @@ button {
   border-color: rgba(255,255,255,0.38);
 }
 
-.dot {
+.material i {
   display: inline-block;
   width: 14px;
   height: 14px;
@@ -279,10 +285,16 @@ button {
 .oxygen { background: #ff6a2d; }
 .water { background: #9ec7ff; }
 
-.phase-list {
-  display: grid;
-  gap: 10px;
+.tool-panel {
   margin-top: 18px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.02);
+  padding: 8px 10px;
+}
+
+.tool-panel.hidden {
+  display: none !important;
 }
 
 .phase {
@@ -297,37 +309,15 @@ button {
   cursor: pointer;
 }
 
+.phase + .phase {
+  margin-top: 10px;
+}
+
 .phase.active {
   background: rgba(236, 193, 83, 0.42);
 }
 
-.subpanel {
-  margin-top: 14px;
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 8px;
-  padding: 8px 10px;
-  background: rgba(255,255,255,0.02);
-}
-
-.subpanel p {
-  margin: 8px 0;
-  font-size: 12px;
-  line-height: 1.5;
-  color: #dfeaf8;
-}
-
-.hidden {
-  display: none !important;
-}
-
-.pressure-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  margin-bottom: 8px;
-}
-
-.pressure-gauge {
+.gauge {
   position: relative;
   width: 100%;
   height: 52px;
@@ -337,7 +327,7 @@ button {
   border-radius: 90px 90px 0 0;
 }
 
-.gauge-needle {
+#gaugeNeedle {
   position: absolute;
   left: 50%;
   bottom: 0;
@@ -345,8 +335,14 @@ button {
   height: 36px;
   background: #ff4d4d;
   transform-origin: center bottom;
-  transform: rotate(-26deg);
   border-radius: 12px;
+}
+
+#pressureText {
+  display: block;
+  text-align: center;
+  font-size: 12px;
+  margin: 8px 0;
 }
 
 .force-buttons {
@@ -369,13 +365,6 @@ button {
   background: #6d2cc7;
 }
 
-#forceGraph {
-  width: 100%;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(0,0,0,0.16);
-  margin-bottom: 6px;
-}
-
 .bucket {
   position: absolute;
   left: 50%;
@@ -388,7 +377,7 @@ button {
   touch-action: none;
 }
 
-.fire {
+.bucket-fire {
   height: 28px;
   text-align: center;
   font-size: 30px;
@@ -425,52 +414,7 @@ button {
   background: linear-gradient(90deg, #ff664e, #ffba52);
 }
 
-.pump-wrap {
-  position: absolute;
-  left: 82px;
-  bottom: 118px;
-  width: 180px;
-  height: 170px;
-  z-index: 10;
-}
-
-.pump-body {
-  position: absolute;
-  left: 18px;
-  bottom: 0;
-  width: 46px;
-  height: 120px;
-  border-radius: 8px 8px 16px 16px;
-  background: linear-gradient(90deg, #d03a31, #8a120d 55%, #b23c3b);
-}
-
-.pump-handle {
-  position: absolute;
-  left: 55px;
-  bottom: 38px;
-  width: 98px;
-  height: 12px;
-  border-radius: 16px;
-  background: rgba(255,255,255,0.18);
-  transform-origin: 18px center;
-  transform: rotate(-28deg);
-  cursor: grab;
-  touch-action: none;
-}
-
-.pump-handle::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: #e2e2e2;
-}
-
-.media-controls {
+.transport {
   position: absolute;
   left: 39%;
   bottom: 115px;
@@ -479,7 +423,7 @@ button {
   z-index: 11;
 }
 
-.media {
+#pause, #play {
   width: 52px;
   height: 52px;
   border: none;
@@ -490,7 +434,7 @@ button {
   cursor: pointer;
 }
 
-.reset-btn {
+#reset {
   position: absolute;
   right: 82px;
   bottom: 105px;
@@ -505,7 +449,7 @@ button {
   z-index: 10;
 }
 
-.bottom-bar {
+.bottom {
   position: absolute;
   left: 0;
   right: 0;
@@ -519,12 +463,12 @@ button {
   padding: 0 22px;
 }
 
-.title {
+.bottom strong {
   font-size: 22px;
   font-weight: 700;
 }
 
-.tabs {
+.bottom .navs {
   display: flex;
   gap: 14px;
 }
@@ -541,7 +485,7 @@ button {
 }
 
 .nav.active {
-  border-bottom-color: rgba(255,255,255.0.8);
+  border-bottom-color: rgba(255,255,255,0.8);
   color: white;
 }
 
@@ -551,9 +495,8 @@ button {
 
 @media (max-width: 980px) {
   .address { display: none; }
-  .side-panel { right: 16px; width: 200px; }
-  .temperature-panel { left: 30%; }
+  .right-panel { right: 16px; width: 200px; }
+  .temperature { left: 30%; transform: none; }
   .bucket { left: 42%; }
-  .pump-wrap { left: 26px; }
-  .media-controls { left: 30%; }
+  .transport { left: 30%; }
 }
