@@ -1,559 +1,223 @@
-* {
-  box-sizing: border-box;
-}
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const state = {
+    temp: 22,
+    phase: 'solid',
+    material: 'neon',
+    pressure: 1,
+    force: 'attract',
+    playing: true,
+    bucket: 0,
+    particles: []
+  };
 
-html, body {
-  margin: 0;
-  width: 100%;
-  height: 100%;
-  font-family: Arial, sans-serif;
-  background: #0c0d10;
-  color: white;
-}
+  function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+  }
 
-body {
-  display: grid;
-  place-items: center;
-  padding: 16px;
-}
+  function updateTempText() {
+    const tempEl = $('temp');
+    const thermoFill = $('thermoFill');
+    if (!tempEl || !thermoFill) return;
 
-button {
-  font: inherit;
-}
+    tempEl.textContent = `${Math.round(state.temp)} K`;
+    const level = clamp((state.temp - 10) / 90, 0, 1);
+    thermoFill.style.height = `${(level * 100).toFixed(1)}%`;
+  }
 
-.app-shell {
-  width: min(1440px, 100%);
-  height: min(860px, calc(100vh - 32px));
-  min-height: 720px;
-  background: #010305;
-  box-shadow: 0 18px 28px rgba(0,0,0,0.45);
-  overflow: hidden;
-}
+  function updatePressureText() {
+    const label = $('pressureText');
+    const needle = $('gaugeNeedle');
+    if (!label || !needle) return;
 
-.browser-bar {
-  height: 42px;
-  background: rgba(28, 31, 36, 0.96);
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 0 14px;
-  color: #edf3ff;
-  font-size: 13px;
-}
+    const normalized = clamp(state.pressure / 3, 0, 1);
+    const angle = -34 + (normalized * 68);
+    label.textContent = `Áp suất ${state.pressure.toFixed(1)} atm`;
+    needle.style.transform = `translateX(-50%) rotate(${angle}deg)`;
+  }
 
-.browser-dots {
-  display: flex;
-  gap: 8px;
-}
+  function applyMaterial(material) {
+    state.material = material;
+    document.querySelectorAll('.material').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.material === material);
+    });
+  }
 
-.browser-dots i {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-}
-.browser-dots i:nth-child(1) { background: #ff5d53; }
-.browser-dots i:nth-child(2) { background: #f6bd3b; }
-.browser-dots i:nth-child(3) { background: #30c75a; }
+  function applyPhase(phase) {
+    state.phase = phase;
+    document.querySelectorAll('.phase').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.phase === phase);
+    });
 
-.tab {
-  padding: 7px 12px;
-  border-radius: 7px 7px 0 0;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.08);
-  line-height: 1;
-}
-.tab.active {
-  background: rgba(255,255,255,0.12);
-}
+    const phaseMap = {
+      solid: 0.65,
+      liquid: 1,
+      gas: 1.75
+    };
+    state.pressure = clamp(state.pressure * phaseMap[phase] || 1, 0.4, 3.2);
+    updatePressureText();
+  }
 
-.address {
-  margin-left: auto;
-  max-width: 420px;
-  padding: 6px 12px;
-  border-radius: 15px;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.06);
-  color: #dfe8fb;
-  font-size: 11px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+  function buildParticles() {
+    const canvas = $('particles');
+    const ctx = canvas && canvas.getContext('2d');
+    if (!canvas || !ctx) return;
 
-.simulation {
-  position: relative;
-  width: 100%;
-  height: calc(100% - 42px);
-  background: #020507;
-  overflow: hidden;
-}
+    const particles = [];
+    const count = 120;
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.9,
+        vy: (Math.random() - 0.5) * 0.9,
+        r: 2 + Math.random() * 3,
+        color: ['#7ad8ff', '#ffd166', '#7ef0b1', '#b18cff'][i % 4]
+      });
+    }
+    state.particles = particles;
+    return { canvas, ctx };
+  }
 
-.temperature-panel {
-  position: absolute;
-  left: 35%;
-  top: 26px;
-  width: 160px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  z-index: 8;
-}
+  function drawParticles() {
+    const canvas = $('particles');
+    const ctx = canvas && canvas.getContext('2d');
+    if (!canvas || !ctx || !state.particles.length) return;
 
-.temp-box {
-  background: rgba(255,255,255,0.12);
-  border: 1px solid rgba(255,255,255,0.14);
-  color: #f0f5ff;
-  border-radius: 10px;
-  padding: 8px 14px;
-  font-weight: 700;
-  font-size: 15px;
-}
+    const phaseScale = {
+      solid: 0.35,
+      liquid: 0.75,
+      gas: 1.4
+    };
+    const scale = phaseScale[state.phase] || 1;
 
-.thermometer {
-  position: relative;
-  width: 24px;
-  height: 160px;
-  margin-top: 16px;
-}
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-.thermometer::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 0;
-  transform: translateX(-50%);
-  width: 18px;
-  height: 120px;
-  border: 3px solid rgba(255,255,255,0.7);
-  border-radius: 12px;
-  background: rgba(255,255,255,0.04);
-}
+    for (const p of state.particles) {
+      p.x += p.vx * scale * (state.temp / 30);
+      p.y += p.vy * scale * (state.temp / 30);
 
-.thermo-fill {
-  position: absolute;
-  left: 50%;
-  bottom: 18px;
-  transform: translateX(-50%);
-  width: 12px;
-  height: 36%;
-  background: linear-gradient(to top, #f64646, #ffae63);
-  border-radius: 10px;
-  transition: height 0.22s ease;
-}
+      if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+      if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
 
-.thermo-bulb {
-  position: absolute;
-  left: 50%;
-  bottom: -6px;
-  transform: translateX(-50%);
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #f24d4d;
-  border: 2px solid rgba(255,255,255,0.25);
-  box-shadow: 0 0 12px rgba(242,77,77,0.7);
-}
+      ctx.beginPath();
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = state.phase === 'gas' ? 0.9 : 0.75;
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
-.chamber-wrap {
-  position: absolute;
-  left: 50%;
-  top: 52%;
-  transform: translate(-50%, -50%);
-  width: 430px;
-  height: 420px;
-}
+    ctx.globalAlpha = 1;
+  }
 
-.chamber {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 340px;
-  height: 360px;
-  border-radius: 18px 18px 14px 14px;
-  background: linear-gradient(90deg, rgba(118,118,118,0.9), rgba(72,72,72,0.9) 10%, rgba(20,20,20,0.94) 22%, rgba(0,0,0,0.96) 75%, rgba(120,120,120,0.85) 92%);
-  box-shadow: inset 0 0 18px rgba(255,255,255,0.12);
-  border: 8px solid rgba(205,205,205,0.8);
-}
+  function animate() {
+    if (state.playing) {
+      const phaseSpeed = {
+        solid: 0.12,
+        liquid: 0.28,
+        gas: 0.62
+      };
+      state.temp = clamp(state.temp + (Math.random() - 0.5) * 2.2 * (phaseSpeed[state.phase] || 0.2), 10, 120);
+      updateTempText();
+      drawParticles();
+    }
 
-.chamber::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -18px;
-  height: 26px;
-  background: rgba(120,122,126,0.8);
-  border-radius: 50%;
-}
+    requestAnimationFrame(animate);
+  }
 
-.lid {
-  position: absolute;
-  top: 8px;
-  left: 30px;
-  right: 30px;
-  height: 22px;
-  border-radius: 50%;
-  background: linear-gradient(#dcdcdc, #8a8d91);
-  border: 2px solid rgba(255,255,255,0.72);
-  cursor: grab;
-  z-index: 12;
-}
+  function setupBucketDrag() {
+    const bucket = $('bucket');
+    if (!bucket) return;
 
-.lid::after {
-  content: "☝";
-  position: absolute;
-  right: -18px;
-  top: -3px;
-  color: #f6d77f;
-  font-size: 22px;
-}
+    let dragging = false;
+    let startY = 0;
+    let startBucket = 0;
 
-#particleCanvas {
-  position: absolute;
-  left: 16px;
-  right: 16px;
-  top: 28px;
-  bottom: 16px;
-  width: auto;
-  height: auto;
-  display: block;
-  background: rgba(0,0,0,0.05);
-  border: 4px solid rgba(255,255,255,0.08);
-}
+    bucket.addEventListener('pointerdown', (event) => {
+      dragging = true;
+      bucket.setPointerCapture(event.pointerId);
+      startY = event.clientY;
+      startBucket = state.bucket;
+    });
 
-.side-panel {
-  position: absolute;
-  right: 78px;
-  top: 34px;
-  width: 240px;
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 10px;
-  background: rgba(0,0,0,0.06);
-  padding: 12px 10px 10px;
-  z-index: 9;
-}
+    bucket.addEventListener('pointermove', (event) => {
+      if (!dragging) return;
+      const delta = (startY - event.clientY) / 6;
+      state.bucket = clamp(startBucket + delta, -100, 100);
+      state.temp = clamp(22 + state.bucket * 0.75, 10, 120);
+      updateTempText();
+    });
 
-.panel-title {
-  margin: 0 0 12px;
-  text-align: center;
-  font-size: 18px;
-  font-weight: 700;
-}
+    bucket.addEventListener('pointerup', () => {
+      dragging = false;
+    });
 
-.material-list {
-  display: grid;
-  gap: 8px;
-}
+    bucket.addEventListener('pointerleave', () => {
+      dragging = false;
+    });
+  }
 
-.material {
-  width: 100%;
-  height: 36px;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.03);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 12px;
-  font-size: 14px;
-  cursor: pointer;
-}
+  function bindButtons() {
+    document.querySelectorAll('.material').forEach((button) => {
+      button.addEventListener('click', () => applyMaterial(button.dataset.material));
+    });
 
-.material.active {
-  border-color: rgba(255,255,255,0.38);
-}
+    document.querySelectorAll('.phase').forEach((button) => {
+      button.addEventListener('click', () => applyPhase(button.dataset.phase));
+    });
 
-.dot {
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-}
+    document.querySelectorAll('[data-force]').forEach((button) => {
+      button.addEventListener('click', () => {
+        state.force = button.dataset.force;
+        document.querySelectorAll('[data-force]').forEach((el) => {
+          el.classList.toggle('active', el.dataset.force === state.force);
+        });
+      });
+    });
 
-.neon { background: #2ddcff; }
-.argon { background: #ff81a0; }
-.oxygen { background: #ff6a2d; }
-.water { background: #9ec7ff; }
+    const playBtn = $('play');
+    const pauseBtn = $('pause');
+    const resetBtn = $('reset');
 
-.phase-list {
-  display: grid;
-  gap: 10px;
-  margin-top: 18px;
-}
+    if (playBtn) {
+      playBtn.addEventListener('click', () => {
+        state.playing = true;
+      });
+    }
 
-.phase {
-  width: 100%;
-  height: 46px;
-  border-radius: 8px;
-  border: 2px solid #f6d06e;
-  background: rgba(236, 193, 83, 0.27);
-  color: #fdf7d7;
-  font-size: 18px;
-  font-weight: 700;
-  cursor: pointer;
-}
+    if (pauseBtn) {
+      pauseBtn.addEventListener('click', () => {
+        state.playing = false;
+      });
+    }
 
-.phase.active {
-  background: rgba(236, 193, 83, 0.42);
-}
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        state.temp = 22;
+        state.pressure = 1;
+        state.phase = 'solid';
+        applyPhase('solid');
+        applyMaterial('neon');
+        updateTempText();
+        updatePressureText();
+      });
+    }
+  }
 
-.subpanel {
-  margin-top: 14px;
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 8px;
-  padding: 8px 10px;
-  background: rgba(255,255,255,0.02);
-}
+  function init() {
+    applyMaterial('neon');
+    applyPhase('solid');
+    updateTempText();
+    updatePressureText();
+    buildParticles();
+    bindButtons();
+    setupBucketDrag();
+    animate();
+  }
 
-.subpanel p {
-  margin: 8px 0;
-  font-size: 12px;
-  line-height: 1.5;
-  color: #dfeaf8;
-}
-
-.hidden {
-  display: none !important;
-}
-
-.pressure-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  margin-bottom: 8px;
-}
-
-.pressure-gauge {
-  position: relative;
-  width: 100%;
-  height: 52px;
-  margin-bottom: 8px;
-  border: 3px solid rgba(255,255,255,0.18);
-  border-bottom: 0;
-  border-radius: 90px 90px 0 0;
-}
-
-.gauge-needle {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  width: 3px;
-  height: 36px;
-  background: #ff4d4d;
-  transform-origin: center bottom;
-  transform: rotate(-26deg);
-  border-radius: 12px;
-}
-
-.force-buttons {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 10px;
-}
-
-.force {
-  flex: 1;
-  border: 1px solid rgba(255,255,255,0.18);
-  background: #1a1d22;
-  color: white;
-  padding: 6px 4px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.force.active {
-  background: #6d2cc7;
-}
-
-#forceGraph {
-  width: 100%;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(0,0,0,0.16);
-  margin-bottom: 6px;
-}
-
-.bucket {
-  position: absolute;
-  left: 50%;
-  bottom: 110px;
-  transform: translateX(-50%);
-  width: 160px;
-  height: 116px;
-  z-index: 15;
-  cursor: grab;
-  touch-action: none;
-}
-
-.fire {
-  height: 28px;
-  text-align: center;
-  font-size: 30px;
-  line-height: 1;
-  animation: flicker 0.45s infinite alternate;
-}
-
-.bucket-body {
-  width: 100%;
-  height: 72px;
-  background: linear-gradient(180deg, #edf1f6, #aab2bd);
-  border-radius: 12px 12px 18px 18px;
-  color: #202833;
-  text-align: center;
-  font-weight: 700;
-  font-size: 13px;
-  padding-top: 14px;
-  box-shadow: inset 0 0 8px rgba(255,255,255,0.18);
-}
-
-.bucket-level {
-  width: 70px;
-  height: 7px;
-  background: rgba(0,0,0,0.15);
-  border-radius: 12px;
-  margin: 10px auto 0;
-  overflow: hidden;
-}
-
-.bucket-level i {
-  display: block;
-  width: 30%;
-  height: 100%;
-  background: linear-gradient(90deg, #ff664e, #ffba52);
-}
-
-.pump-wrap {
-  position: absolute;
-  left: 82px;
-  bottom: 118px;
-  width: 180px;
-  height: 170px;
-  z-index: 10;
-}
-
-.pump-body {
-  position: absolute;
-  left: 18px;
-  bottom: 0;
-  width: 46px;
-  height: 120px;
-  border-radius: 8px 8px 16px 16px;
-  background: linear-gradient(90deg, #d03a31, #8a120d 55%, #b23c3b);
-}
-
-.pump-handle {
-  position: absolute;
-  left: 55px;
-  bottom: 38px;
-  width: 98px;
-  height: 12px;
-  border-radius: 16px;
-  background: rgba(255,255,255,0.18);
-  transform-origin: 18px center;
-  transform: rotate(-28deg);
-  cursor: grab;
-  touch-action: none;
-}
-
-.pump-handle::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: #e2e2e2;
-}
-
-.media-controls {
-  position: absolute;
-  left: 39%;
-  bottom: 115px;
-  display: flex;
-  gap: 18px;
-  z-index: 11;
-}
-
-.media {
-  width: 52px;
-  height: 52px;
-  border: none;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.18);
-  color: white;
-  font-size: 22px;
-  cursor: pointer;
-}
-
-.reset-btn {
-  position: absolute;
-  right: 82px;
-  bottom: 105px;
-  width: 60px;
-  height: 60px;
-  border: none;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #f6b84f, #eb8d2d);
-  color: white;
-  font-size: 28px;
-  cursor: pointer;
-  z-index: 10;
-}
-
-.bottom-bar {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 88px;
-  background: rgba(22,20,28,0.92);
-  border-top: 1px solid rgba(255,255,255,0.09);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 22px;
-}
-
-.title {
-  font-size: 22px;
-  font-weight: 700;
-}
-
-.tabs {
-  display: flex;
-  gap: 14px;
-}
-
-.nav {
-  background: transparent;
-  border: none;
-  color: #dfe7f6;
-  font-size: 14px;
-  height: 82px;
-  min-width: 90px;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-}
-
-.nav.active {
-  border-bottom-color: rgba(255,255,255,0.8);
-  color: white;
-}
-
-@keyframes flicker {
-  to { transform: scale(1.12); }
-}
-
-@media (max-width: 980px) {
-  .address { display: none; }
-  .side-panel { right: 16px; width: 200px; }
-  .temperature-panel { left: 30%; }
-  .bucket { left: 42%; }
-  .pump-wrap { left: 26px; }
-  .media-controls { left: 30%; }
-}
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
