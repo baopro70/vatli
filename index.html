@@ -1,1 +1,54 @@
-<!doctype html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Deep Space Pressure RPG</title><link rel="stylesheet" href="style.css"></head><body><main><header><b>◉ HELIOS // RPG DECK</b><span>⚠ <strong id="clock">06:00</strong></span><button id="resetBtn">↻ RESET</button></header><section class="hud"><label>OXYGEN <b id="oxygenValue">78%</b><i><em id="oxygenBar"></em></i></label><label>POWER <b id="powerValue">64%</b><i><em id="powerBar"></em></i></label><label>HULL <b id="hullValue">100%</b><i><em id="hullBar"></em></i></label><label>CORE TEMP <b id="tempValue">294 K</b></label></section><div class="layout"><section class="world"><canvas id="world" width="900" height="540"></canvas><p id="hint">WASD / mũi tên để di chuyển · Đến biểu tượng ! và nhấn E</p></section><aside><h3>QUEST LOG <b id="questCount">01 / 04</b></h3><div id="questList"></div><div class="crew"><b>CREW STATUS</b><p id="crewStatus">Tìm Mira tại khu Crew Quarters.</p></div></aside></div></main><div id="questModal" class="modal hidden"><article><button class="close" id="closeQuest">×</button><small id="questNpc"></small><h1 id="questTitle"></h1><p id="questBrief"></p><div id="questContent"></div></article></div><div id="endModal" class="modal hidden"><article class="end"><h1 id="endTitle"></h1><p id="endText"></p><b id="score"></b><button id="again">CHƠI LẠI</button></article></div><script src="app.js"></script></body></html>
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trạng thái của vật chất</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="browser-bar" aria-label="Thanh mô phỏng">
+      <div class="browser-dots"><i></i><i></i><i></i></div>
+      <div class="browser-tab active">Trạng thái của vật chất</div>
+      <div class="browser-address">phet.colorado.edu/sims/html/states-of-matter</div>
+    </header>
+
+    <section class="simulation">
+      <div class="temperature-control">
+        <output id="temperature">14 K</output>
+        <div class="thermometer"><span id="thermometer-fill"></span><b></b></div>
+      </div>
+
+      <section class="chamber" aria-label="Bình mô phỏng">
+        <div class="glass"><canvas id="particles" width="360" height="390"></canvas></div>
+      </section>
+
+      <aside class="legend">
+        <h1>Nguyên tử và Phân tử</h1>
+        <button class="material selected" data-material="neon"><span>Neon</span><i class="neon"></i></button>
+        <button class="material" data-material="argon"><span>Argon</span><i class="argon"></i></button>
+        <button class="material" data-material="oxygen"><span>Oxygen</span><i class="oxygen"></i></button>
+        <button class="material" data-material="water"><span>Nước</span><i class="water"></i></button>
+        <div class="state-buttons">
+          <button class="state active" data-state="solid"><span>▣</span>Rắn</button>
+          <button class="state" data-state="liquid"><span>◉</span>Lỏng</button>
+          <button class="state" data-state="gas"><span>☁</span>Hơi</button>
+        </div>
+      </aside>
+
+      <div class="transport">
+        <button id="pause" class="round pause" aria-label="Tạm dừng">Ⅱ</button>
+        <button id="play" class="round" aria-label="Phát">▶</button>
+      </div>
+      <button id="reset" class="reset" aria-label="Đặt lại">↻</button>
+
+      <footer class="sim-footer">
+        <strong>Trạng thái của vật chất</strong>
+        <nav><a class="current">◈ Trạng thái</a><a>♢ Chuyển phase</a><a>● Tương tác</a></nav>
+      </footer>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
