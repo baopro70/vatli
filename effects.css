@@ -1,1 +1,0 @@
-.world{position:relative}.world #world,.world #fx{display:block;width:100%;height:auto}.world #fx{position:absolute;left:0;top:0;pointer-events:none;image-rendering:pixelated}.fx-pulse{animation:fxPulse .28s ease-out}@keyframes fxPulse{0%{filter:brightness(1)}35%{filter:brightness(1.8) saturate(1.5)}100%{filter:brightness(1)}}
