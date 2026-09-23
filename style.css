@@ -1,109 +1,559 @@
-<!doctype html>
-<html lang="vi">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Trạng thái của vật chất</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <div class="app-shell">
-    <header class="browser-bar">
-      <div class="browser-dots"><i></i><i></i><i></i></div>
-      <div class="tab active">Trạng thái của vật chất</div>
-      <div class="address">phet.colorado.edu/sims/html/states-of-matter</div>
-    </header>
+* {
+  box-sizing: border-box;
+}
 
-    <main class="simulation">
-      <div class="temperature-panel">
-        <div class="temp-box" id="tempBox">22 K</div>
-        <div class="thermometer">
-          <div class="thermo-fill" id="thermoFill"></div>
-          <div class="thermo-bulb"></div>
-        </div>
-      </div>
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  font-family: Arial, sans-serif;
+  background: #0c0d10;
+  color: white;
+}
 
-      <div class="chamber-wrap">
-        <div class="chamber" id="chamber">
-          <div class="lid" id="lid" title="Kéo nắp bình"></div>
-          <canvas id="particleCanvas" width="360" height="390"></canvas>
-        </div>
-      </div>
+body {
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
 
-      <aside class="side-panel">
-        <div class="panel-title">Nguyên tử và Phân tử</div>
+button {
+  font: inherit;
+}
 
-        <div class="material-list">
-          <button class="material active" data-material="neon">Neon <span class="dot neon"></span></button>
-          <button class="material" data-material="argon">Argon <span class="dot argon"></span></button>
-          <button class="material" data-material="oxygen">Oxygen <span class="dot oxygen"></span></button>
-          <button class="material" data-material="water">Nước <span class="dot water"></span></button>
-        </div>
+.app-shell {
+  width: min(1440px, 100%);
+  height: min(860px, calc(100vh - 32px));
+  min-height: 720px;
+  background: #010305;
+  box-shadow: 0 18px 28px rgba(0,0,0,0.45);
+  overflow: hidden;
+}
 
-        <div class="phase-list">
-          <button class="phase active" data-phase="solid">▣ Rắn</button>
-          <button class="phase" data-phase="liquid">◌ Lỏng</button>
-          <button class="phase" data-phase="gas">☁ Hơi</button>
-        </div>
+.browser-bar {
+  height: 42px;
+  background: rgba(28, 31, 36, 0.96);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+  color: #edf3ff;
+  font-size: 13px;
+}
 
-        <div class="subpanel visible" id="statusPanel">
-          <p>• Kéo xô nhiệt phía dưới bình để thay đổi nhiệt độ K.</p>
-        </div>
+.browser-dots {
+  display: flex;
+  gap: 8px;
+}
 
-        <div class="subpanel hidden" id="phasePanel">
-          <div class="pressure-row">
-            <span>Áp suất</span>
-            <strong id="pressureText">1.0 atm</strong>
-          </div>
-          <div class="pressure-gauge">
-            <div class="gauge-needle" id="gaugeNeedle"></div>
-          </div>
-          <p>• Kéo tay bơm để thay đổi áp suất.</p>
-          <p>• Kéo nắp bình để thay đổi thể tích.</p>
-        </div>
+.browser-dots i {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+.browser-dots i:nth-child(1) { background: #ff5d53; }
+.browser-dots i:nth-child(2) { background: #f6bd3b; }
+.browser-dots i:nth-child(3) { background: #30c75a; }
 
-        <div class="subpanel hidden" id="interactionPanel">
-          <div class="force-buttons">
-            <button class="force active" data-force="attract">Lực hút</button>
-            <button class="force" data-force="repel">Lực đẩy</button>
-          </div>
-          <canvas id="forceGraph" width="220" height="150"></canvas>
-          <p>Khoảng cách: <strong id="distanceText">2.0 σ</strong></p>
-          <p>Lực: <strong id="forceText">Hút</strong></p>
-        </div>
-      </aside>
+.tab {
+  padding: 7px 12px;
+  border-radius: 7px 7px 0 0;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.08);
+  line-height: 1;
+}
+.tab.active {
+  background: rgba(255,255,255,0.12);
+}
 
-      <div class="bucket" id="bucket" title="Kéo xô nhiệt">
-        <div class="fire">🔥</div>
-        <div class="bucket-body">
-          <span>Xô nhiệt</span>
-          <div class="bucket-level"><i id="bucketScale"></i></div>
-        </div>
-      </div>
+.address {
+  margin-left: auto;
+  max-width: 420px;
+  padding: 6px 12px;
+  border-radius: 15px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.06);
+  color: #dfe8fb;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-      <div class="pump-wrap" id="pumpWrap" title="Bơm áp suất">
-        <div class="pump-body"></div>
-        <div class="pump-handle" id="pumpHandle"></div>
-      </div>
+.simulation {
+  position: relative;
+  width: 100%;
+  height: calc(100% - 42px);
+  background: #020507;
+  overflow: hidden;
+}
 
-      <div class="media-controls">
-        <button class="media" id="pauseBtn">❚❚</button>
-        <button class="media" id="playBtn">▶</button>
-      </div>
+.temperature-panel {
+  position: absolute;
+  left: 35%;
+  top: 26px;
+  width: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 8;
+}
 
-      <button class="reset-btn" id="resetBtn">◉</button>
+.temp-box {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.14);
+  color: #f0f5ff;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-weight: 700;
+  font-size: 15px;
+}
 
-      <div class="bottom-bar">
-        <div class="title">Trạng thái của vật chất</div>
-        <div class="tabs">
-          <button class="nav active" data-view="status">Trạng thái</button>
-          <button class="nav" data-view="phase">Chuyển phase</button>
-          <button class="nav" data-view="interaction">Tương tác</button>
-        </div>
-      </div>
-    </main>
-  </div>
+.thermometer {
+  position: relative;
+  width: 24px;
+  height: 160px;
+  margin-top: 16px;
+}
 
-  <script src="app.js"></script>
-</body>
-</html>
+.thermometer::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 120px;
+  border: 3px solid rgba(255,255,255,0.7);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+}
+
+.thermo-fill {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 36%;
+  background: linear-gradient(to top, #f64646, #ffae63);
+  border-radius: 10px;
+  transition: height 0.22s ease;
+}
+
+.thermo-bulb {
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #f24d4d;
+  border: 2px solid rgba(255,255,255,0.25);
+  box-shadow: 0 0 12px rgba(242,77,77,0.7);
+}
+
+.chamber-wrap {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  transform: translate(-50%, -50%);
+  width: 430px;
+  height: 420px;
+}
+
+.chamber {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 340px;
+  height: 360px;
+  border-radius: 18px 18px 14px 14px;
+  background: linear-gradient(90deg, rgba(118,118,118,0.9), rgba(72,72,72,0.9) 10%, rgba(20,20,20,0.94) 22%, rgba(0,0,0,0.96) 75%, rgba(120,120,120,0.85) 92%);
+  box-shadow: inset 0 0 18px rgba(255,255,255,0.12);
+  border: 8px solid rgba(205,205,205,0.8);
+}
+
+.chamber::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -18px;
+  height: 26px;
+  background: rgba(120,122,126,0.8);
+  border-radius: 50%;
+}
+
+.lid {
+  position: absolute;
+  top: 8px;
+  left: 30px;
+  right: 30px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(#dcdcdc, #8a8d91);
+  border: 2px solid rgba(255,255,255,0.72);
+  cursor: grab;
+  z-index: 12;
+}
+
+.lid::after {
+  content: "☝";
+  position: absolute;
+  right: -18px;
+  top: -3px;
+  color: #f6d77f;
+  font-size: 22px;
+}
+
+#particleCanvas {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: 28px;
+  bottom: 16px;
+  width: auto;
+  height: auto;
+  display: block;
+  background: rgba(0,0,0,0.05);
+  border: 4px solid rgba(255,255,255,0.08);
+}
+
+.side-panel {
+  position: absolute;
+  right: 78px;
+  top: 34px;
+  width: 240px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  background: rgba(0,0,0,0.06);
+  padding: 12px 10px 10px;
+  z-index: 9;
+}
+
+.panel-title {
+  margin: 0 0 12px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.material-list {
+  display: grid;
+  gap: 8px;
+}
+
+.material {
+  width: 100%;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.03);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.material.active {
+  border-color: rgba(255,255,255,0.38);
+}
+
+.dot {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+
+.neon { background: #2ddcff; }
+.argon { background: #ff81a0; }
+.oxygen { background: #ff6a2d; }
+.water { background: #9ec7ff; }
+
+.phase-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.phase {
+  width: 100%;
+  height: 46px;
+  border-radius: 8px;
+  border: 2px solid #f6d06e;
+  background: rgba(236, 193, 83, 0.27);
+  color: #fdf7d7;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.phase.active {
+  background: rgba(236, 193, 83, 0.42);
+}
+
+.subpanel {
+  margin-top: 14px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: rgba(255,255,255,0.02);
+}
+
+.subpanel p {
+  margin: 8px 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #dfeaf8;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.pressure-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.pressure-gauge {
+  position: relative;
+  width: 100%;
+  height: 52px;
+  margin-bottom: 8px;
+  border: 3px solid rgba(255,255,255,0.18);
+  border-bottom: 0;
+  border-radius: 90px 90px 0 0;
+}
+
+.gauge-needle {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 3px;
+  height: 36px;
+  background: #ff4d4d;
+  transform-origin: center bottom;
+  transform: rotate(-26deg);
+  border-radius: 12px;
+}
+
+.force-buttons {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.force {
+  flex: 1;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: #1a1d22;
+  color: white;
+  padding: 6px 4px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.force.active {
+  background: #6d2cc7;
+}
+
+#forceGraph {
+  width: 100%;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(0,0,0,0.16);
+  margin-bottom: 6px;
+}
+
+.bucket {
+  position: absolute;
+  left: 50%;
+  bottom: 110px;
+  transform: translateX(-50%);
+  width: 160px;
+  height: 116px;
+  z-index: 15;
+  cursor: grab;
+  touch-action: none;
+}
+
+.fire {
+  height: 28px;
+  text-align: center;
+  font-size: 30px;
+  line-height: 1;
+  animation: flicker 0.45s infinite alternate;
+}
+
+.bucket-body {
+  width: 100%;
+  height: 72px;
+  background: linear-gradient(180deg, #edf1f6, #aab2bd);
+  border-radius: 12px 12px 18px 18px;
+  color: #202833;
+  text-align: center;
+  font-weight: 700;
+  font-size: 13px;
+  padding-top: 14px;
+  box-shadow: inset 0 0 8px rgba(255,255,255,0.18);
+}
+
+.bucket-level {
+  width: 70px;
+  height: 7px;
+  background: rgba(0,0,0,0.15);
+  border-radius: 12px;
+  margin: 10px auto 0;
+  overflow: hidden;
+}
+
+.bucket-level i {
+  display: block;
+  width: 30%;
+  height: 100%;
+  background: linear-gradient(90deg, #ff664e, #ffba52);
+}
+
+.pump-wrap {
+  position: absolute;
+  left: 82px;
+  bottom: 118px;
+  width: 180px;
+  height: 170px;
+  z-index: 10;
+}
+
+.pump-body {
+  position: absolute;
+  left: 18px;
+  bottom: 0;
+  width: 46px;
+  height: 120px;
+  border-radius: 8px 8px 16px 16px;
+  background: linear-gradient(90deg, #d03a31, #8a120d 55%, #b23c3b);
+}
+
+.pump-handle {
+  position: absolute;
+  left: 55px;
+  bottom: 38px;
+  width: 98px;
+  height: 12px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.18);
+  transform-origin: 18px center;
+  transform: rotate(-28deg);
+  cursor: grab;
+  touch-action: none;
+}
+
+.pump-handle::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #e2e2e2;
+}
+
+.media-controls {
+  position: absolute;
+  left: 39%;
+  bottom: 115px;
+  display: flex;
+  gap: 18px;
+  z-index: 11;
+}
+
+.media {
+  width: 52px;
+  height: 52px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.18);
+  color: white;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.reset-btn {
+  position: absolute;
+  right: 82px;
+  bottom: 105px;
+  width: 60px;
+  height: 60px;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f6b84f, #eb8d2d);
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.bottom-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 88px;
+  background: rgba(22,20,28,0.92);
+  border-top: 1px solid rgba(255,255,255,0.09);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 22px;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.tabs {
+  display: flex;
+  gap: 14px;
+}
+
+.nav {
+  background: transparent;
+  border: none;
+  color: #dfe7f6;
+  font-size: 14px;
+  height: 82px;
+  min-width: 90px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.nav.active {
+  border-bottom-color: rgba(255,255,255.0.8);
+  color: white;
+}
+
+@keyframes flicker {
+  to { transform: scale(1.12); }
+}
+
+@media (max-width: 980px) {
+  .address { display: none; }
+  .side-panel { right: 16px; width: 200px; }
+  .temperature-panel { left: 30%; }
+  .bucket { left: 42%; }
+  .pump-wrap { left: 26px; }
+  .media-controls { left: 30%; }
+}
