@@ -1,1 +1,110 @@
-:root{--gold:#f6d16f;--cyan:#27e5ed}*{box-sizing:border-box}html,body{margin:0;height:100%;font-family:Arial,sans-serif;background:#111;color:#fff}body{display:grid;place-items:center;padding:18px}.app-shell{width:min(1440px,100%);height:min(900px,calc(100vh - 36px));min-height:700px;background:#000;overflow:hidden;box-shadow:0 15px 50px #000}.browser-bar{height:42px;background:#25272c;display:flex;align-items:center;gap:13px;padding:0 15px;font-size:13px}.browser-dots{display:flex;gap:7px}.browser-dots i{width:12px;height:12px;border-radius:50%}.browser-dots i:nth-child(1){background:#ff5f56}.browser-dots i:nth-child(2){background:#ffbd2e}.browser-dots i:nth-child(3){background:#27c93f}.tab{padding:8px 15px;background:#3a3c43;border-radius:7px 7px 0 0}.address{margin-left:auto;background:#33353b;border-radius:15px;padding:6px 15px;color:#cbd3df;width:370px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.simulation{height:calc(100% - 42px);position:relative;background:#000;overflow:hidden}.temperature{position:absolute;top:50px;left:42%;z-index:5;text-align:center}.temperature output{display:block;background:#fff;color:#222;border-radius:8px;padding:8px 18px;font-weight:bold}.thermo{height:145px;width:23px;margin:14px auto 0;border:3px solid #eee;border-radius:16px;position:relative}.thermo span{position:absolute;bottom:8px;left:5px;width:8px;height:30%;border-radius:8px;background:#e33131;transition:.2s}.thermo b{position:absolute;bottom:-17px;left:-5px;width:29px;height:29px;border-radius:50%;background:#d21e2b;border:2px solid white}.chamber-area{position:absolute;left:49%;top:48%;transform:translate(-50%,-50%)}.chamber{width:360px;height:430px;padding:25px 24px 25px;border-radius:14px 14px 45px 45px;background:linear-gradient(90deg,#777,#282828 8%,#050505 15%,#000 85%,#666 94%,#888);box-shadow:inset 0 0 8px white;position:relative}.chamber:before{content:"";position:absolute;left:-1px;right:-1px;top:-18px;height:52px;border-radius:50%;background:#696969;box-shadow:0 17px #999}.glass{height:100%;border:8px solid #3e3e3e;background:#000;overflow:hidden;position:relative;z-index:1}.glass canvas{width:100%;height:100%}.lid{position:absolute;z-index:4;top:2px;left:25px;right:25px;height:25px;border-radius:50%;background:#aaa;border:2px solid #eee;text-align:right;padding-right:8px;color:#ffd86a;cursor:grab;touch-action:none}.bucket{position:absolute;left:49%;transform:translateX(-50%);bottom:92px;width:130px;height:105px;text-align:center;z-index:6;cursor:grab;touch-action:none}.bucket-fire{font-size:31px;height:35px;animation:flicker .4s infinite alternate}.bucket-body{height:66px;padding-top:15px;background:linear-gradient(110deg,#eef4f8,#a9b0b7);color:#222;border-radius:4px 4px 22px 22px;clip-path:polygon(5% 0,95% 0,85% 100%,15% 100%);font-size:13px;font-weight:bold}.bucket-level{width:55px;height:5px;background:#fa3b25;margin:9px auto}.right-panel{position:absolute;right:5%;top:30px;width:245px}.right-panel h2{font-size:18px;text-align:center;margin:0 0 9px}.materials,.tool-panel{border:1px solid #eee;border-radius:10px;padding:9px;background:#000;margin-bottom:12px}.material{display:flex;width:100%;height:34px;background:transparent;border:1px solid transparent;border-radius:7px;color:white;align-items:center;justify-content:space-between;padding:0 9px;font-size:15px;cursor:pointer}.material.active{border-color:white}.material i{width:16px;height:16px;border-radius:50%}.neon{background:#24e5ed}.argon{background:#ffa1a5}.oxygen{background:#ff5d0c}.water{background:#fff;box-shadow:8px 0 #ff6815}.phase{width:100%;height:45px;margin:5px 0;border:2px solid var(--gold);border-radius:6px;background:linear-gradient(#ffe99a,#e4bd56);color:#221b08;font-size:17px;cursor:pointer}.phase.active{filter:brightness(1.12)}.tool-panel p{font-size:12px;line-height:1.45;color:#ddd}.hidden{display:none}.gauge{height:70px;border-radius:70px 70px 0 0;border:4px solid #ddd;border-bottom:0;position:relative;text-align:center;padding-top:35px;color:#ddd}.gauge span{position:absolute;left:50%;bottom:0;width:3px;height:45px;background:red;transform-origin:bottom;transform:rotate(-35deg)}.pump{height:75px;position:relative;margin:5px 0}.pump-body{position:absolute;left:35px;bottom:0;width:28px;height:58px;background:#c52c24;border-radius:6px}.pump-handle{position:absolute;left:48px;bottom:35px;width:105px;height:10px;background:#aaa;border-radius:10px;transform-origin:left center;transform:rotate(-25deg);cursor:grab;touch-action:none}.pump-handle:before{content:"";position:absolute;left:-8px;top:-7px;width:24px;height:24px;border-radius:50%;background:#ddd}.force-buttons{display:flex;gap:6px}.force-buttons button{flex:1;background:#222;color:#fff;border:1px solid #aaa;border-radius:5px;padding:6px;cursor:pointer}.force-buttons button.active{background:#b52bcc}#graph{width:100%;height:145px;background:#050505;margin-top:6px}.transport{position:absolute;left:39%;bottom:100px;display:flex;gap:14px}.transport button{width:48px;height:48px;border:0;border-radius:50%;background:#bfe5ff;color:#234;font-size:20px;cursor:pointer}.reset{position:absolute;right:7%;bottom:82px;border:0;border-radius:50%;width:55px;height:55px;background:#f4a02b;color:white;font-size:35px}.bottom{position:absolute;bottom:0;left:0;right:0;height:72px;background:white;color:#222;display:flex;align-items:center;padding:0 18px;font-size:20px}.bottom>div{margin-left:auto;display:flex;gap:16px}.nav{border:0;background:transparent;color:#888;padding:16px 7px;cursor:pointer;font-size:13px}.nav.active{color:#222;border-bottom:3px solid #222} @keyframes flicker{to{transform:scale(1.12)}}@media(max-width:850px){body{padding:0}.app-shell{height:100vh}.address{display:none}.right-panel{right:10px;width:190px}.chamber-area{left:42%}.bucket{left:40%}.temperature{left:31%}.bottom strong{font-size:14px}.bottom>div{gap:0}.nav{font-size:10px}}
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trạng thái của vật chất</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="browser-bar">
+      <div class="browser-dots"><i></i><i></i><i></i></div>
+      <div class="tab">Trạng thái của vật chất</div>
+      <div class="address">Mô phỏng vật lý tương tác</div>
+    </header>
+
+    <section class="simulation">
+      <div class="temperature-box">
+        <span id="tempText">22 K</span>
+      </div>
+
+      <div class="thermometer">
+        <div class="thermo-body"></div>
+        <div class="thermo-fill" id="thermoFill"></div>
+        <div class="thermo-bulb"></div>
+      </div>
+
+      <div class="chamber-wrap">
+        <div class="chamber" id="chamber">
+          <div class="lid" id="lid">
+            <div class="lid-grip">☝</div>
+          </div>
+          <canvas id="particleCanvas" width="360" height="420"></canvas>
+        </div>
+      </div>
+
+      <div class="bucket" id="bucket" aria-label="Xô nhiệt">
+        <div class="bucket-fire">🔥</div>
+        <div class="bucket-body">
+          <span>Xô nhiệt</span>
+          <div class="bucket-scale"><i id="bucketScale"></i></div>
+        </div>
+      </div>
+
+      <div class="pump" id="pump" aria-label="Bơm áp suất">
+        <div class="pump-handle" id="pumpHandle"></div>
+        <div class="pump-body"></div>
+      </div>
+
+      <aside class="side-panel">
+        <h3>Nguyên tử và Phân tử</h3>
+
+        <div class="materials">
+          <button class="material active" data-material="neon">Neon <i class="neon"></i></button>
+          <button class="material" data-material="argon">Argon <i class="argon"></i></button>
+          <button class="material" data-material="oxygen">Oxygen <i class="oxygen"></i></button>
+          <button class="material" data-material="water">Nước <i class="water"></i></button>
+        </div>
+
+        <div class="phase-buttons">
+          <button class="phase active" data-phase="solid">▣ Rắn</button>
+          <button class="phase" data-phase="liquid">◉ Lỏng</button>
+          <button class="phase" data-phase="gas">☁ Hơi</button>
+        </div>
+
+        <div class="panel-card view-status">
+          <p>• Kéo xô dưới bình để thay đổi nhiệt độ.</p>
+        </div>
+
+        <div class="panel-card view-phase hidden">
+          <div class="gauge-title">Áp suất <span id="pressureText">1.0 atm</span></div>
+          <div class="gauge">
+            <div class="gauge-needle" id="gaugeNeedle"></div>
+          </div>
+          <p>• Kéo tay bơm để thay đổi áp suất.</p>
+          <p>• Kéo tay lên xuống để thay đổi thể tích bình.</p>
+        </div>
+
+        <div class="panel-card view-interaction hidden">
+          <div class="interaction-controls">
+            <button class="force active" data-force="attract">Lực hút</button>
+            <button class="force" data-force="repel">Lực đẩy</button>
+          </div>
+          <canvas id="forceGraph" width="220" height="140"></canvas>
+          <p>Khoảng cách: <strong id="distanceText">2.0 σ</strong></p>
+          <p>Lực: <strong id="forceText">Hút</strong></p>
+        </div>
+      </aside>
+
+      <div class="transport">
+        <button id="pauseBtn">❚❚</button>
+        <button id="playBtn">▶</button>
+      </div>
+
+      <button class="reset-btn" id="resetBtn">↻</button>
+
+      <nav class="bottom-bar">
+        <strong>Trạng thái của vật chất</strong>
+        <div class="tabs">
+          <button class="nav active" data-view="status">◈ Trạng thái</button>
+          <button class="nav" data-view="phase">♢ Chuyển phase</button>
+          <button class="nav" data-view="interaction">● Tương tác</button>
+        </div>
+      </nav>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
