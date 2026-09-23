@@ -1,100 +1,15 @@
 <!doctype html>
-<html lang="vi">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Trạng thái của vật chất</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <div class="app-shell">
-    <header class="browser-bar">
-      <div class="browser-dots">
-        <span class="dot red"></span>
-        <span class="dot yellow"></span>
-        <span class="dot green"></span>
-      </div>
-      <div class="tab active">Trạng thái của vật chất</div>
-      <div class="address">phet.colorado.edu/.../states-of-matter</div>
-    </header>
-
-    <main class="simulation-area">
-      <div class="center-panel">
-        <div class="temp-box" id="tempBox">22 K</div>
-        <div class="thermometer-shell">
-          <div class="thermometer-scale"></div>
-          <div class="thermometer-line">
-            <div class="thermometer-fluid" id="thermoFluid"></div>
-          </div>
-          <div class="thermometer-bulb"></div>
-        </div>
-      </div>
-
-      <div class="chamber-wrap">
-        <div class="chamber-shadow"></div>
-        <div class="chamber">
-          <div class="chamber-top"></div>
-          <div class="glass-inner">
-            <canvas id="particleCanvas" width="360" height="420"></canvas>
-          </div>
-          <div class="glass-bottom"></div>
-        </div>
-      </div>
-
-      <aside class="side-panel">
-        <div class="panel-title">Nguyên tử và Phân tử</div>
-
-        <div class="material-list">
-          <button class="material-item active" data-material="neon">
-            <span>Neon</span>
-            <i class="dot neon"></i>
-          </button>
-          <button class="material-item" data-material="argon">
-            <span>Argon</span>
-            <i class="dot argon"></i>
-          </button>
-          <button class="material-item" data-material="oxygen">
-            <span>Oxygen</span>
-            <i class="dot oxygen"></i>
-          </button>
-          <button class="material-item" data-material="water">
-            <span>Nước</span>
-            <i class="dot water"></i>
-          </button>
-        </div>
-
-        <div class="phase-list">
-          <button class="phase active" data-phase="solid"><span class="icon">▣</span>Rắn</button>
-          <button class="phase" data-phase="liquid"><span class="icon">◌</span>Lỏng</button>
-          <button class="phase" data-phase="gas"><span class="icon">☁</span>Hơi</button>
-        </div>
-      </aside>
-
-      <div class="control-row">
-        <button class="control-button small" id="pauseBtn">❚❚</button>
-        <button class="control-button small" id="playBtn">▶</button>
-      </div>
-
-      <div class="heat-pad" id="heatPad">
-        <div class="heat-handle" id="heatHandle"></div>
-      </div>
-
-      <div class="pump-wrap">
-        <div class="pump-body"></div>
-        <div class="pump-handle" id="pumpHandle" aria-label="Nén/giãn khí"></div>
-      </div>
-
-      <div class="bottom-bar">
-        <div class="title">Trạng thái của vật chất</div>
-        <div class="nav">
-          <div class="nav-item active"><span class="mini home"></span> Trạng thái</div>
-          <div class="nav-item"><span class="mini cloud"></span> Chuyển phase</div>
-          <div class="nav-item"><span class="mini dot"></span> Tương tác</div>
-        </div>
-      </div>
-    </main>
-  </div>
-
-  <script src="app.js"></script>
-</body>
-</html>
+<html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Trạng thái của vật chất</title><link rel="stylesheet" href="style.css"></head>
+<body><main class="app-shell"><header class="browser-bar"><div class="browser-dots"><i></i><i></i><i></i></div><div class="tab">Trạng thái của vật chất</div><div class="address">Mô phỏng vật lý tương tác</div></header>
+<section class="simulation">
+  <div class="temperature"><output id="temp">22 K</output><div class="thermo"><span id="thermoFill"></span><b></b></div></div>
+  <section class="chamber-area"><div class="chamber" id="chamber"><div class="lid" id="lid">☝</div><div class="glass"><canvas id="particles" width="360" height="420"></canvas></div></div></section>
+  <div class="bucket" id="bucket" title="Kéo xô lên để đun nóng, kéo xuống để làm lạnh"><div class="bucket-fire">🔥</div><div class="bucket-body">Xô nhiệt<div class="bucket-level" id="bucketLevel"></div></div></div>
+  <aside class="right-panel"><h2>Nguyên tử và Phân tử</h2><div class="materials"><button class="material active" data-material="neon">Neon <i class="neon"></i></button><button class="material" data-material="argon">Argon <i class="argon"></i></button><button class="material" data-material="oxygen">Oxygen <i class="oxygen"></i></button><button class="material" data-material="water">Nước <i class="water"></i></button></div>
+    <div id="statusPanel" class="tool-panel"><button class="phase active" data-phase="solid">▣ &nbsp; Rắn</button><button class="phase" data-phase="liquid">◉ &nbsp; Lỏng</button><button class="phase" data-phase="gas">☁ &nbsp; Hơi</button><p>Chạm và kéo <b>xô nhiệt</b> bên dưới bình.</p></div>
+    <div id="phasePanel" class="tool-panel hidden"><div class="gauge"><b id="pressureText">Áp suất 1.0 atm</b><span id="gaugeNeedle"></span></div><p>Kéo tay bơm để đổi áp suất.</p><div class="pump" id="pump"><div class="pump-handle" id="pumpHandle"></div><div class="pump-body"></div></div><p>Kéo <b>ngón tay trên nắp</b> để đổi thể tích.</p></div>
+    <div id="interactionPanel" class="tool-panel hidden"><p><b>Thế tương tác</b></p><div class="force-buttons"><button data-force="attract">Lực hút</button><button data-force="repel">Lực đẩy</button></div><canvas id="graph" width="230" height="145"></canvas><p>Khoảng cách: <b id="distanceText">2.0 σ</b><br>Lực: <b id="forceText">Hút</b></p></div>
+  </aside>
+  <div class="transport"><button id="pause">Ⅱ</button><button id="play">▶</button></div><button id="reset" class="reset">↻</button>
+  <nav class="bottom"><strong>Trạng thái của vật chất</strong><div><button class="nav active" data-view="status">◈ Trạng thái</button><button class="nav" data-view="phase">♢ Chuyển phase</button><button class="nav" data-view="interaction">● Tương tác</button></div></nav>
+</section></main><script src="app.js"></script></body></html>
