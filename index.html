@@ -1,30 +1,32 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>Trạng thái của vật chất</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Trạng thái của vật chất</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<main class="app-shell">
-  <header class="browser-bar"><div class="browser-dots"><i></i><i></i><i></i></div><div class="tab">Trạng thái của vật chất</div><div class="address">Mô phỏng tương tác</div></header>
-  <section class="simulation">
-    <div class="temperature"><output id="temp">22 K</output><div class="thermo"><span id="thermoFill"></span><b></b></div></div>
-    <section class="chamber-area">
-      <div class="chamber" id="chamber"><div class="lid" id="lid">☝</div><div class="glass"><canvas id="particles" width="360" height="420"></canvas></div></div>
-    </section>
-    <div class="bucket" id="bucket"><div class="bucket-fire">🔥</div><div class="bucket-body">Xô nhiệt<div class="bucket-level"><i></i></div></div></div>
-    <aside class="right-panel">
-      <h2>Nguyên tử và Phân tử</h2>
-      <div class="materials"><button class="material active" data-material="neon">Neon <i class="neon"></i></button><button class="material" data-material="argon">Argon <i class="argon"></i></button><button class="material" data-material="oxygen">Oxygen <i class="oxygen"></i></button><button class="material" data-material="water">Nước <i class="water"></i></button></div>
-      <div id="statusPanel" class="tool-panel"><button class="phase active" data-phase="solid">▣ &nbsp; Rắn</button><button class="phase" data-phase="liquid">◉ &nbsp; Lỏng</button><button class="phase" data-phase="gas">☁ &nbsp; Khí</button></div>
-      <div id="phasePanel" class="tool-panel hidden"><div class="gauge"><b id="pressureText">Áp suất 1.0 atm</b><span id="gaugeNeedle"></span></div><p>Kéo piston trên bình để nén hoặc giãn khí.</p><div class="piston-control" id="pistonControl"><span id="pistonHandle">↕</span></div></div>
-      <div id="interactionPanel" class="tool-panel hidden"><p><b>Thế tương tác</b></p><div class="force-buttons"><button class="force active" data-force="attract">Lực hút</button><button class="force" data-force="repel">Lực đẩy</button></div><p id="forceText">Các hạt hút nhau.</p></div>
+<main class="sim-app">
+  <header class="topbar"><div class="ph-logo">PhET</div><div class="title">Trạng thái của vật chất</div><button class="help" id="help" aria-label="Trợ giúp">?</button></header>
+  <div class="tabs"><button class="tab active">Trạng thái</button><button class="tab">Chuyển pha</button><button class="tab">Tương tác</button></div>
+  <section class="workspace">
+    <div class="sim-card">
+      <div class="sim-toolbar"><button id="playPause" class="round">Ⅱ</button><button id="reset" class="round">↻</button><span id="status">Đang chạy</span></div>
+      <div class="temperature-readout"><span>Nhiệt độ</span><strong id="temperature">22 K</strong></div>
+      <div class="container" id="container"><div class="lid" id="lid"></div><canvas id="particles" aria-label="Mô phỏng các hạt"></canvas><div class="piston" id="piston"><span></span></div></div>
+      <div class="scale-label left">Thể tích lớn</div><div class="scale-label right">Thể tích nhỏ</div>
+      <div class="side-control"><label for="pressure">Áp suất</label><output id="pressureValue">1.0 atm</output><input id="pressure" type="range" min="0.4" max="4" step="0.1" value="1" orient="vertical"><div class="pressure-mark"><span>cao</span><span>thấp</span></div></div>
+      <div class="heater" id="heater" role="slider" aria-label="Kéo để thay đổi nhiệt độ" tabindex="0"><div class="flame">🔥</div><div class="heater-body">Bộ gia nhiệt</div></div>
+      <div class="temp-track"><span>Lạnh</span><input id="heat" type="range" min="10" max="120" value="22"><span>Nóng</span></div>
+    </div>
+    <aside class="controls">
+      <section><h2>Chọn chất</h2><div class="choices material-choices"><button class="choice active" data-material="neon"><i></i>Neon</button><button class="choice" data-material="argon"><i></i>Argon</button><button class="choice" data-material="oxygen"><i></i>Oxy</button><button class="choice" data-material="water"><i></i>Nước</button></div></section>
+      <section><h2>Trạng thái</h2><div class="choices phase-choices"><button class="choice active" data-phase="solid">Rắn</button><button class="choice" data-phase="liquid">Lỏng</button><button class="choice" data-phase="gas">Khí</button></div></section>
+      <section class="legend"><h2>Chú thích</h2><p><b class="dot blue"></b> Hạt vật chất</p><p><b class="dot orange"></b> Tác động nhiệt</p><p class="hint">Kéo thanh áp suất hoặc bộ gia nhiệt để quan sát sự thay đổi của các hạt.</p></section>
     </aside>
-    <div class="transport"><button id="pause" aria-label="Tạm dừng">Ⅱ</button><button id="play" aria-label="Chạy">▶</button></div><button id="reset" class="reset" aria-label="Đặt lại">↻</button>
-    <nav class="bottom"><strong>Trạng thái của vật chất</strong><div class="navs"><button class="nav active" data-view="status">◈ Trạng thái</button><button class="nav" data-view="phase">♢ Chuyển pha</button><button class="nav" data-view="interaction">✦ Tương tác</button></div></nav>
   </section>
+  <footer class="footer"><span>Trạng thái của vật chất</span><span>Khám phá chuyển động của các hạt</span></footer>
 </main>
 <script src="app.js"></script>
 </body>

@@ -1,65 +1,32 @@
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
-  const s = { temp:22, pressure:1, phase:'solid', material:'neon', force:'attract', running:true, particles:[], drag:null };
-  const colors = { neon:'#2ddcff', argon:'#ff81a0', oxygen:'#ff6a2d', water:'#9ec7ff' };
-  const phaseSpeed = { solid:.12, liquid:.48, gas:1.15 };
-  const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+  const canvas = $('particles');
+  const ctx = canvas.getContext('2d');
+  const state = { material:'neon', phase:'solid', temp:22, pressure:1, running:true, particles:[], heatDrag:false, last:0 };
+  const palette = { neon:'#28a9e0', argon:'#d34f8f', oxygen:'#ef6b43', water:'#3f78d0' };
+  const phaseData = { solid:{speed:.22,spread:.16}, liquid:{speed:1.1,spread:.55}, gas:{speed:2.5,spread:1.2} };
+  const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 
-  function render(){
-    $('temp').textContent = `${Math.round(s.temp)} K`;
-    $('thermoFill').style.height = `${clamp((s.temp-10)/110*100,4,100)}%`;
-    $('pressureText').textContent = `Áp suất ${s.pressure.toFixed(1)} atm`;
-    $('gaugeNeedle').style.transform = `translateX(-50%) rotate(${-55+(s.pressure/4)*110}deg)`;
-    $('chamber').style.setProperty('--pressure', s.pressure);
-    document.body.style.setProperty('--particle-color', colors[s.material]);
-  }
-  function setPhase(phase){
-    s.phase=phase;
-    document.querySelectorAll('.phase').forEach(b=>b.classList.toggle('active',b.dataset.phase===phase));
-    if(phase==='solid') s.pressure=clamp(s.pressure*.82,.4,4);
-    if(phase==='gas') s.pressure=clamp(s.pressure*1.35,.4,4);
-    render();
-  }
-  function setView(view){
-    ['status','phase','interaction'].forEach(v=>$(`${v}Panel`).classList.toggle('hidden',v!==view));
-    document.querySelectorAll('.nav').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
-  }
-  function makeParticles(){
-    s.particles=Array.from({length:95},(_,i)=>({x:Math.random()*350+5,y:Math.random()*405+8,vx:(Math.random()-.5)*1.4,vy:(Math.random()-.5)*1.4,r:2+Math.random()*2.5,c:i%3?colors[s.material]:'#ffd166'}));
-  }
-  function draw(){
-    const c=$('particles'),x=c.getContext('2d'); x.clearRect(0,0,c.width,c.height);
-    const compact=clamp((s.pressure-1)/3,0,1), speed=phaseSpeed[s.phase]*(s.temp/30);
-    s.particles.forEach(p=>{
-      if(s.running){
-        if(s.phase==='solid'){p.x=175+(p.x-175)*.999;p.y=205+(p.y-205)*.999;}
-        else {p.x+=p.vx*speed;p.y+=p.vy*speed;}
-        if(p.x<3||p.x>357)p.vx*=-1;if(p.y<3||p.y>417)p.vy*=-1;
-        if(compact){p.x=180+(p.x-180)*(1-compact*.012);p.y=210+(p.y-210)*(1-compact*.012);}
-      }
-      x.beginPath();x.fillStyle=p.c;x.globalAlpha=.85;x.arc(p.x,p.y,p.r,0,Math.PI*2);x.fill();
-    }); x.globalAlpha=1; requestAnimationFrame(draw);
-  }
-  function pressureFromPointer(clientY){
-    const r=$('pistonControl').getBoundingClientRect();
-    const ratio=clamp((clientY-r.top)/r.height,0,1);
-    s.pressure=+(4-ratio*3.6).toFixed(1);
-    s.temp=clamp(s.temp+(s.pressure-1)*.025,10,120); render();
-  }
+  function resize(){ const r=canvas.getBoundingClientRect(), d=Math.min(devicePixelRatio||1,2); canvas.width=Math.max(1,Math.round(r.width*d)); canvas.height=Math.max(1,Math.round(r.height*d)); ctx.setTransform(d,0,0,d,0,0); }
+  function bounds(){ const r=canvas.getBoundingClientRect(); return {w:r.width,h:r.height}; }
+  function makeParticles(){ const {w,h}=bounds(); state.particles=Array.from({length:90},(_,i)=>({x:20+Math.random()*Math.max(20,w-40),y:20+Math.random()*Math.max(20,h-40),vx:(Math.random()-.5),vy:(Math.random()-.5),r:4+(i%3),color:palette[state.material]})); }
+  function updateLabels(){ $('temperature').textContent=`${Math.round(state.temp)} K`; $('pressureValue').textContent=`${state.pressure.toFixed(1)} atm`; $('heat').value=state.temp; $('pressure').value=state.pressure; $('status').textContent=state.running?'Đang chạy':'Đã tạm dừng'; $('piston').style.height=`${30+state.pressure/4*58}%`; }
+  function setMaterial(v){ state.material=v; document.querySelectorAll('[data-material]').forEach(b=>b.classList.toggle('active',b.dataset.material===v)); state.particles.forEach(p=>p.color=palette[v]); }
+  function setPhase(v){ state.phase=v; document.querySelectorAll('[data-phase]').forEach(b=>b.classList.toggle('active',b.dataset.phase===v)); if(v==='solid') state.temp=Math.min(state.temp,35); if(v==='gas') state.temp=Math.max(state.temp,70); updateLabels(); }
+  function draw(time){ const {w,h}=bounds(); const dt=Math.min((time-state.last)/16.67||1,3); state.last=time; ctx.clearRect(0,0,w,h); const cfg=phaseData[state.phase]; const compact=clamp((state.pressure-0.4)/3.6,0,1); const cx=w/2, cy=h/2; const targetSpread=(1-compact)*cfg.spread;
+    for(const p of state.particles){ if(state.running){ if(state.phase==='solid'){p.x+=(cx+(p.x-cx)*targetSpread-p.x)*.09*dt; p.y+=(cy+(p.y-cy)*targetSpread-p.y)*.09*dt; p.x+=Math.sin(time/400+p.r)*.18*dt; p.y+=Math.cos(time/500+p.r)*.18*dt;} else {p.x+=p.vx*cfg.speed*(state.temp/22)*dt; p.y+=p.vy*cfg.speed*(state.temp/22)*dt; if(state.force==='repel'){p.x+=(p.x-cx)*.0008*dt;p.y+=(p.y-cy)*.0008*dt;} if(state.phase==='liquid'){p.x+=(cx-p.x)*.001*dt;p.y+=(cy-p.y)*.001*dt;} } if(p.x<5||p.x>w-5)p.vx*=-1;if(p.y<5||p.y>h-5)p.vy*=-1; }
+      ctx.beginPath();ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=8;ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+    } requestAnimationFrame(draw); }
+  function setPressure(v){ state.pressure=clamp(+v,.4,4); updateLabels(); }
   function bind(){
-    document.querySelectorAll('.material').forEach(b=>b.addEventListener('click',()=>{s.material=b.dataset.material;document.querySelectorAll('.material').forEach(x=>x.classList.toggle('active',x===b));s.particles.forEach(p=>p.c=Math.random()<.25?'#ffd166':colors[s.material]);render();}));
-    document.querySelectorAll('.phase').forEach(b=>b.addEventListener('click',()=>setPhase(b.dataset.phase)));
-    document.querySelectorAll('.nav').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
-    document.querySelectorAll('.force').forEach(b=>b.addEventListener('click',()=>{s.force=b.dataset.force;document.querySelectorAll('.force').forEach(x=>x.classList.toggle('active',x===b));$('forceText').textContent=s.force==='attract'?'Các hạt hút nhau.':'Các hạt đẩy nhau.';}));
-    $('play').addEventListener('click',()=>s.running=true);$('pause').addEventListener('click',()=>s.running=false);
-    $('reset').addEventListener('click',()=>{s.temp=22;s.pressure=1;s.phase='solid';s.running=true;setPhase('solid');render();});
-    const pc=$('pistonControl'), ph=$('pistonHandle');
-    const start=e=>{s.drag=e.pointerId;ph.setPointerCapture(e.pointerId);pressureFromPointer(e.clientY);e.preventDefault();};
-    pc.addEventListener('pointerdown',start,{passive:false}); pc.addEventListener('pointermove',e=>{if(s.drag===e.pointerId){pressureFromPointer(e.clientY);e.preventDefault();}},{passive:false});
-    ['pointerup','pointercancel','lostpointercapture'].forEach(t=>pc.addEventListener(t,()=>s.drag=null));
-    const bucket=$('bucket'); let by=null,bt=0; bucket.addEventListener('pointerdown',e=>{by=e.clientY;bt=s.temp;bucket.setPointerCapture(e.pointerId);e.preventDefault();},{passive:false}); bucket.addEventListener('pointermove',e=>{if(by===null)return;s.temp=clamp(bt+(by-e.clientY)*.65,10,120);render();},{passive:false}); ['pointerup','pointercancel','lostpointercapture'].forEach(t=>bucket.addEventListener(t,()=>by=null));
+    $('pressure').addEventListener('input',e=>setPressure(e.target.value)); $('heat').addEventListener('input',e=>{state.temp=+e.target.value;updateLabels();});
+    document.querySelectorAll('[data-material]').forEach(b=>b.addEventListener('click',()=>setMaterial(b.dataset.material))); document.querySelectorAll('[data-phase]').forEach(b=>b.addEventListener('click',()=>setPhase(b.dataset.phase)));
+    $('playPause').addEventListener('click',()=>{state.running=!state.running;$('playPause').textContent=state.running?'Ⅱ':'▶';updateLabels();});
+    $('reset').addEventListener('click',()=>{state.temp=22;state.pressure=1;state.phase='solid';state.running=true;$('playPause').textContent='Ⅱ';setMaterial('neon');setPhase('solid');makeParticles();updateLabels();});
+    const heater=$('heater'); let startY=0,startT=0,drag=false; const start=e=>{drag=true;startY=e.clientY;startT=state.temp;heater.setPointerCapture?.(e.pointerId);e.preventDefault();}; const move=e=>{if(!drag)return;state.temp=clamp(startT+(startY-e.clientY)*.6,10,120);updateLabels();e.preventDefault();}; const stop=()=>drag=false; heater.addEventListener('pointerdown',start,{passive:false});heater.addEventListener('pointermove',move,{passive:false});heater.addEventListener('pointerup',stop);heater.addEventListener('pointercancel',stop);
+    window.addEventListener('resize',()=>{resize();makeParticles();});
   }
-  function init(){makeParticles();bind();render();draw();}
+  function init(){ resize();makeParticles();bind();updateLabels();requestAnimationFrame(draw); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init,{once:true}); else init();
 })();
