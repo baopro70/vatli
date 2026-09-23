@@ -3,20 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Trạng thái của vật chất</title>
+  <title>Phòng thí nghiệm trạng thái vật chất</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 <main class="app-shell">
-  <header class="browser-bar"><div class="browser-dots"><i></i><i></i><i></i></div><div class="browser-tab active">Trạng thái của vật chất</div><div class="browser-address">Mô phỏng tương tác vật lý</div></header>
+  <header class="browser-bar"><div class="browser-dots"><i></i><i></i><i></i></div><div class="browser-tab active">Trạng thái của vật chất</div><div class="browser-address">Phòng thí nghiệm tương tác</div></header>
   <section class="simulation">
     <div class="temperature-control"><output id="temperature">14 K</output><div class="thermometer"><span id="thermometer-fill"></span><b></b></div></div>
-    <section class="chamber" aria-label="Bình mô phỏng"><div class="glass"><canvas id="particles" width="360" height="390"></canvas></div></section>
+
+    <section class="chamber" id="chamber" aria-label="Bình mô phỏng">
+      <div class="lid" id="lid" title="Kéo nắp bình lên hoặc xuống"><span class="lid-grip">↕</span></div>
+      <div class="glass"><canvas id="particles" width="360" height="390"></canvas></div>
+    </section>
+
+    <div class="torch-tool" id="torch" title="Kéo ngọn đuốc vào dưới bình để đun nóng" role="button" tabindex="0"><div class="flame">🔥</div><div class="torch-stick"></div><strong>Đuốc</strong></div>
+    <div class="hand-hint">☝ Kéo nắp bình để nén / giãn khí</div>
+
     <aside class="legend">
       <h1>Nguyên tử và Phân tử</h1>
       <button class="material selected" data-material="neon"><span>Neon</span><i class="neon"></i></button><button class="material" data-material="argon"><span>Argon</span><i class="argon"></i></button><button class="material" data-material="oxygen"><span>Oxygen</span><i class="oxygen"></i></button><button class="material" data-material="water"><span>Nước</span><i class="water"></i></button>
       <div class="state-buttons"><button class="state active" data-state="solid"><span>▣</span>Rắn</button><button class="state" data-state="liquid"><span>◉</span>Lỏng</button><button class="state" data-state="gas"><span>☁</span>Hơi</button></div>
-      <div class="experiment-controls"><label>Nhiệt độ <output id="slider-value">14 K</output></label><input id="temperature-slider" type="range" min="5" max="120" value="14"><div class="control-row"><button id="cool">❄ Làm lạnh</button><button id="heat">🔥 Đun nóng</button></div><label>Áp suất <output id="pressure-value">50%</output></label><input id="pressure-slider" type="range" min="10" max="100" value="50"></div>
+      <div class="experiment-controls"><label>Nhiệt độ <output id="slider-value">14 K</output></label><input id="temperature-slider" type="range" min="5" max="120" value="14"><label>Thể tích <output id="volume-value">100%</output></label><input id="volume-slider" type="range" min="55" max="125" value="100"></div>
     </aside>
     <div class="stats"><b id="particle-count">90</b> hạt <span>•</span> va chạm <b id="collision-count">0</b></div>
     <div class="transport"><button id="pause" class="round pause">Ⅱ</button><button id="play" class="round">▶</button></div><button id="reset" class="reset">↻</button>
